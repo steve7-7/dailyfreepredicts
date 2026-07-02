@@ -172,18 +172,52 @@ export default function Index() {
 
       if (!response.ok) {
         let errorMessage = `Failed to fetch predictions: ${response.status} ${response.statusText}`;
+        let isRetryable = response.status >= 500;
+
         try {
           const errorData = await response.json();
-          if (errorData.error === "API authentication failed") {
-            errorMessage = "API configuration error: Invalid or expired API key. Please contact support.";
-          } else {
-            errorMessage = errorData.error || errorMessage;
+          console.error("[Index] API error response:", errorData);
+
+          // Parse error code and provide specific guidance
+          const code = errorData.code;
+          isRetryable = errorData.retryable !== false;
+
+          switch (code) {
+            case "API_KEY_MISSING":
+              errorMessage = "API key not configured on server. Please contact support.";
+              isRetryable = false;
+              break;
+            case "API_AUTH_FAILED":
+              errorMessage = "API authentication failed. Please contact support.";
+              isRetryable = false;
+              break;
+            case "RATE_LIMITED":
+              const retryAfter = errorData.retryAfter ? ` in ${errorData.retryAfter} seconds` : "";
+              errorMessage = `Too many requests. Please try again${retryAfter}.`;
+              isRetryable = true;
+              break;
+            case "INVALID_RESPONSE":
+              errorMessage = "Server received invalid data from API. Please try again later.";
+              isRetryable = false;
+              break;
+            case "NETWORK_ERROR":
+              errorMessage = "Network error while fetching predictions. Please check your connection.";
+              isRetryable = true;
+              break;
+            case "FETCH_FAILED":
+              errorMessage = "Failed to fetch predictions. Please try again.";
+              isRetryable = true;
+              break;
+            default:
+              errorMessage = errorData.error || errorData.details || errorMessage;
           }
-          console.error("API error details:", errorData);
         } catch (_) {
-          // Response wasn't JSON
+          // Response wasn't JSON, use default error message
         }
-        throw new Error(errorMessage);
+
+        const error = new Error(errorMessage);
+        (error as any).isRetryable = isRetryable;
+        throw error;
       }
 
       const result = await response.json();
@@ -364,11 +398,16 @@ export default function Index() {
           <div className="p-4 rounded-lg border border-red-700/50 bg-red-900/30 mb-8">
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-              <div>
+              <div className="flex-1">
                 <h3 className="font-semibold text-red-300">
                   Error Loading Predictions
                 </h3>
                 <p className="text-sm text-red-400 mt-1">{error}</p>
+                {(error as any)?.isRetryable !== false && (
+                  <p className="text-xs text-red-500 mt-2 italic">
+                    This error may be temporary. Try again in a moment.
+                  </p>
+                )}
                 <button
                   onClick={fetchPredictions}
                   className="text-sm font-medium text-red-400 hover:text-red-300 mt-2 underline"
