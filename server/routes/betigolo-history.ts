@@ -1,15 +1,24 @@
 import { RequestHandler } from "express";
 
+interface CacheEntry {
+  data: unknown;
+  timestamp: number;
+  ttl: number;
+}
+
+const cache = new Map<string, CacheEntry>();
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3): Promise<Response> {
+async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 5): Promise<Response> {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       const response = await fetch(url, options);
 
       if (response.status === 429) {
         const retryAfter = response.headers.get('retry-after');
-        const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
+        const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt + 1) * 1000;
         console.warn(`Rate limited. Waiting ${waitTime}ms before retry ${attempt + 1}/${maxRetries}`);
         if (attempt < maxRetries - 1) {
           await sleep(waitTime);
@@ -20,7 +29,7 @@ async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3)
       return response;
     } catch (error) {
       if (attempt < maxRetries - 1) {
-        const waitTime = Math.pow(2, attempt) * 1000;
+        const waitTime = Math.pow(2, attempt + 1) * 1000;
         console.warn(`Fetch failed, retrying in ${waitTime}ms:`, error);
         await sleep(waitTime);
         continue;
@@ -32,6 +41,15 @@ async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3)
 }
 
 export const handleBetigoloHistory: RequestHandler = async (req, res) => {
+  const cacheKey = "betigolo-history";
+
+  // Check cache
+  const cached = cache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < cached.ttl) {
+    console.log("Returning cached betigolo history");
+    return res.json(cached.data);
+  }
+
   const url = "https://betigolo-tips.p.rapidapi.com/premium/history";
 
   const apiKey = process.env.RAPIDAPI_KEY || process.env.PREDICTIONS_KEY;
@@ -76,6 +94,14 @@ export const handleBetigoloHistory: RequestHandler = async (req, res) => {
 
     const data = await response.json();
     console.log("Betigolo history fetched successfully");
+
+    // Cache the response
+    cache.set(cacheKey, {
+      data,
+      timestamp: Date.now(),
+      ttl: CACHE_TTL
+    });
+
     res.json(data);
   } catch (error) {
     console.error("Error fetching betigolo history:", error);

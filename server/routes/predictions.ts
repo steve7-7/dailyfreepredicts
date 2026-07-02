@@ -1,6 +1,15 @@
 import { RequestHandler } from "express";
 import { hasActiveSubscription } from "./auth";
 
+interface CacheEntry {
+  data: unknown;
+  timestamp: number;
+  ttl: number;
+}
+
+const cache = new Map<string, CacheEntry>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 interface PredictionApiMatch {
   id: number;
   home_team: string;
@@ -18,14 +27,14 @@ function redactPredictionForVisitor(match: PredictionApiMatch) {
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3): Promise<Response> {
+async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 5): Promise<Response> {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       const response = await fetch(url, options);
 
       if (response.status === 429) {
         const retryAfter = response.headers.get('retry-after');
-        const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
+        const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt + 1) * 1000;
         console.warn(`Rate limited. Waiting ${waitTime}ms before retry ${attempt + 1}/${maxRetries}`);
         if (attempt < maxRetries - 1) {
           await sleep(waitTime);
@@ -36,7 +45,7 @@ async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3)
       return response;
     } catch (error) {
       if (attempt < maxRetries - 1) {
-        const waitTime = Math.pow(2, attempt) * 1000;
+        const waitTime = Math.pow(2, attempt + 1) * 1000;
         console.warn(`Fetch failed, retrying in ${waitTime}ms:`, error);
         await sleep(waitTime);
         continue;
@@ -49,6 +58,15 @@ async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3)
 
 export const handlePredictions: RequestHandler = async (req, res) => {
   const isSubscribed = hasActiveSubscription(req);
+  const cacheKey = `predictions:${isSubscribed}`;
+
+  // Check cache
+  const cached = cache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < cached.ttl) {
+    console.log("Returning cached predictions");
+    return res.json(cached.data);
+  }
+
   const url =
     "https://football-prediction-api.p.rapidapi.com/api/v2/predictions?market=classic";
 
@@ -61,8 +79,6 @@ export const handlePredictions: RequestHandler = async (req, res) => {
       details: "RAPIDAPI_KEY or PREDICTIONS_KEY environment variable is missing"
     });
   }
-
-  console.log(`Using API key: ${apiKey.substring(0, 10)}...`);
 
   const options: RequestInit = {
     method: "GET",
@@ -97,16 +113,25 @@ export const handlePredictions: RequestHandler = async (req, res) => {
     const data = await response.json();
     console.log("Predictions fetched successfully");
 
+    let responseData;
     if (!isSubscribed && Array.isArray(data.data)) {
-      res.json({
+      responseData = {
         ...data,
         data: data.data.map(redactPredictionForVisitor),
         isSubscribed: false,
-      });
-      return;
+      };
+    } else {
+      responseData = { ...data, isSubscribed };
     }
 
-    res.json({ ...data, isSubscribed });
+    // Cache the response
+    cache.set(cacheKey, {
+      data: responseData,
+      timestamp: Date.now(),
+      ttl: CACHE_TTL
+    });
+
+    res.json(responseData);
   } catch (error) {
     console.error("Error fetching predictions:", error);
     res.status(500).json({
