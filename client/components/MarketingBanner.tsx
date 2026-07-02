@@ -41,6 +41,7 @@ export function MarketingBanner() {
           type="button"
           onClick={handlePredictionsClick}
           className="text-white bg-indigo-500 hover:bg-indigo-600 font-medium rounded text-xs px-3 py-1.5 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-slate-900 whitespace-nowrap"
+          style={{ boxShadow: "1px 1px 3px 0px rgba(31, 247, 79, 1)" }}
         >
           Today Predictions
         </button>
