@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { TrendingUp, Menu, X } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { TrendingUp, Menu } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {
@@ -81,14 +81,7 @@ export function Header({ activePath = "/", matchCount }: HeaderProps) {
                 side="right"
                 className="w-64 border-l border-slate-800 bg-slate-900 p-0"
               >
-                <div className="flex items-center justify-between h-14 px-4 border-b border-slate-800">
-                  <h2 className="text-lg font-bold text-white">Menu</h2>
-                  <SheetTrigger asChild>
-                    <button className="p-2 rounded-lg text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 transition-colors">
-                      <X className="w-5 h-5" />
-                    </button>
-                  </SheetTrigger>
-                </div>
+                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 <nav className="flex flex-col gap-1 p-4">
                   {navLinks.map((link) => (
                     <Link
