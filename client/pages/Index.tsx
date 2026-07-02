@@ -396,15 +396,8 @@ export default function Index() {
                         <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                         {match.status}
                       </span>
-                      <p className="text-xs text-slate-400 mt-1">
-                        {match.competition_cluster} • {match.season}
-                      </p>
                     </div>
-                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-medium">
-                      <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                      {match.status}
-                    </span>
-                  </div>
+                  )}
                   <div className="flex items-center justify-between text-slate-700 mt-4">
                     <div className="text-sm font-medium flex-1">
                       {match.home_team}
@@ -431,40 +424,41 @@ export default function Index() {
                   </div>
                 </div>
 
-                    {/* Odds Preview / Expanded */}
-                    {selectedPrediction === match.id && match.odds && (
-                      <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 animate-in fade-in duration-200">
-                        <h4 className="text-sm font-semibold text-slate-900 mb-3">
-                          Available Odds
-                        </h4>
-                        <div className="grid grid-cols-3 gap-2">
-                          {Object.entries(match.odds).map(([market, odd]) => (
-                            <div
-                              key={market}
-                              className="bg-white p-2 rounded border border-slate-200 text-center hover:border-primary/50 transition-colors"
-                            >
-                              <div className="text-xs font-semibold text-slate-600">
-                                {market}
-                              </div>
-                              <div className="text-sm font-bold text-primary mt-1">
-                                {odd.toFixed(2)}
-                              </div>
-                            </div>
-                          ))}
+                {/* Odds Preview / Expanded */}
+                {selectedPrediction === match.id && match.odds && (
+                  <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 animate-in fade-in duration-200">
+                    <h4 className="text-sm font-semibold text-slate-900 mb-3">
+                      Available Odds
+                    </h4>
+                    <div className="grid grid-cols-3 gap-2">
+                      {Object.entries(match.odds).map(([market, odd]) => (
+                        <div
+                          key={market}
+                          className="bg-white p-2 rounded border border-slate-200 text-center hover:border-primary/50 transition-colors"
+                        >
+                          <div className="text-xs font-semibold text-slate-600">
+                            {market}
+                          </div>
+                          <div className="text-sm font-bold text-primary mt-1">
+                            {odd.toFixed(2)}
+                          </div>
                         </div>
-                      </div>
-                    )}
-
-                    {/* Footer */}
-                    <div className="px-6 py-3 bg-white border-t border-slate-100">
-                      <button className="w-full text-sm font-medium text-primary hover:text-secondary transition-colors">
-                        {selectedPrediction === match.id
-                          ? "Hide Odds"
-                          : "View Full Odds"}
-                      </button>
+                      ))}
                     </div>
-                  </>
-                ) : (
+                  </div>
+                )}
+
+                {/* Footer */}
+                <div className="px-6 py-3 bg-white border-t border-slate-100">
+                  <button className="w-full text-sm font-medium text-primary hover:text-secondary transition-colors">
+                    {selectedPrediction === match.id
+                      ? "Hide Odds"
+                      : "View Full Odds"}
+                  </button>
+                </div>
+
+                {/* Locked Content */}
+                {!isSubscribed && (
                   <div className="px-6 py-4 bg-gradient-to-r from-primary/5 to-secondary/5 border-t border-slate-100">
                     <div className="flex items-center gap-2 text-sm text-slate-600 mb-4">
                       <Lock className="w-4 h-4 text-primary" />
