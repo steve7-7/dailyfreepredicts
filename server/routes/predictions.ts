@@ -62,6 +62,8 @@ export const handlePredictions: RequestHandler = async (req, res) => {
     });
   }
 
+  console.log(`Using API key: ${apiKey.substring(0, 10)}...`);
+
   const options: RequestInit = {
     method: "GET",
     headers: {
@@ -72,23 +74,28 @@ export const handlePredictions: RequestHandler = async (req, res) => {
   };
 
   try {
+    console.log("Fetching predictions from RapidAPI...");
     const response = await fetchWithRetry(url, options);
 
     if (!response.ok) {
-      console.error(`API Error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error(`API Error: ${response.status} ${response.statusText}`, errorText);
+
       if (response.status === 403) {
         return res.status(403).json({
           error: "API authentication failed",
-          details: "Invalid or expired API key"
+          details: "Invalid or expired API key. Please verify your RapidAPI credentials."
         });
       }
       return res.status(response.status).json({
         error: `Failed to fetch predictions: ${response.statusText}`,
-        status: response.status
+        status: response.status,
+        details: errorText
       });
     }
 
     const data = await response.json();
+    console.log("Predictions fetched successfully");
 
     if (!isSubscribed && Array.isArray(data.data)) {
       res.json({
@@ -102,6 +109,9 @@ export const handlePredictions: RequestHandler = async (req, res) => {
     res.json({ ...data, isSubscribed });
   } catch (error) {
     console.error("Error fetching predictions:", error);
-    res.status(500).json({ error: "Failed to fetch predictions" });
+    res.status(500).json({
+      error: "Failed to fetch predictions",
+      details: error instanceof Error ? error.message : "Unknown error"
+    });
   }
 };
