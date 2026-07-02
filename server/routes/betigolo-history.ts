@@ -1,20 +1,51 @@
 import { RequestHandler } from "express";
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3): Promise<Response> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, options);
+
+      if (response.status === 429) {
+        const retryAfter = response.headers.get('retry-after');
+        const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
+        console.warn(`Rate limited. Waiting ${waitTime}ms before retry ${attempt + 1}/${maxRetries}`);
+        if (attempt < maxRetries - 1) {
+          await sleep(waitTime);
+          continue;
+        }
+      }
+
+      return response;
+    } catch (error) {
+      if (attempt < maxRetries - 1) {
+        const waitTime = Math.pow(2, attempt) * 1000;
+        console.warn(`Fetch failed, retrying in ${waitTime}ms:`, error);
+        await sleep(waitTime);
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw new Error('Max retries exceeded');
+}
+
 export const handleBetigoloHistory: RequestHandler = async (req, res) => {
   const url = "https://betigolo-tips.p.rapidapi.com/premium/history";
-  
-  const apiKey = process.env.RAPIDAPI_KEY;
-  
+
+  const apiKey = process.env.RAPIDAPI_KEY || process.env.PREDICTIONS_KEY;
+
   if (!apiKey) {
-    console.error("RAPIDAPI_KEY environment variable is not set");
+    console.error("API key not configured");
     return res.status(500).json({
       error: "API key not configured",
-      details: "RAPIDAPI_KEY environment variable is missing"
+      details: "RAPIDAPI_KEY or PREDICTIONS_KEY environment variable is missing"
     });
   }
-  
-  const options = {
-    method: "GET" as const,
+
+  const options: RequestInit = {
+    method: "GET",
     headers: {
       "x-rapidapi-key": apiKey,
       "x-rapidapi-host": "betigolo-tips.p.rapidapi.com",
@@ -24,23 +55,31 @@ export const handleBetigoloHistory: RequestHandler = async (req, res) => {
 
   try {
     console.log(`Fetching betigolo history from: ${url}`);
-    const response = await fetch(url, options);
-    
+    const response = await fetchWithRetry(url, options);
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`API Error: ${response.status} ${response.statusText}`, errorText);
-      return res.status(response.status).json({ 
+
+      if (response.status === 403) {
+        return res.status(403).json({
+          error: "API authentication failed",
+          details: "Invalid or expired API key"
+        });
+      }
+
+      return res.status(response.status).json({
         error: `Failed to fetch betigolo history: ${response.statusText}`,
         status: response.status
       });
     }
-    
+
     const data = await response.json();
     console.log("Betigolo history fetched successfully");
     res.json(data);
   } catch (error) {
     console.error("Error fetching betigolo history:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Failed to fetch betigolo history",
       details: error instanceof Error ? error.message : "Unknown error"
     });
