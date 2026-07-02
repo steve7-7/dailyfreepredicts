@@ -169,18 +169,31 @@ export default function Index() {
       }
 
       const response = await fetch("/api/predictions", { headers });
+
       if (!response.ok) {
-        throw new Error("Failed to fetch predictions");
+        let errorMessage = `Failed to fetch predictions: ${response.status} ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          if (errorData.error === "API authentication failed") {
+            errorMessage = "API configuration error: Invalid or expired API key. Please contact support.";
+          } else {
+            errorMessage = errorData.error || errorMessage;
+          }
+          console.error("API error details:", errorData);
+        } catch (_) {
+          // Response wasn't JSON
+        }
+        throw new Error(errorMessage);
       }
+
       const result = await response.json();
       const predictionsData = result.data || [];
       setPredictions(predictionsData);
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "An error occurred while fetching predictions",
-      );
+      const errorMessage = err instanceof Error
+        ? err.message
+        : "An error occurred while fetching predictions";
+      setError(errorMessage);
       console.error("Error fetching predictions:", err);
     } finally {
       setLoading(false);
