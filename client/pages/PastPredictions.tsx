@@ -17,6 +17,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Header } from "@/components/Header";
 
 interface HistoryMatch {
   match_dat: string;
@@ -168,60 +169,7 @@ export default function PastPredictions() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center justify-between h-14">
-            <Link
-              to="/"
-              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-            >
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-400 to-lime-500 flex items-center justify-center flex-shrink-0">
-                <TrendingUp className="w-6 h-6 text-slate-900" />
-              </div>
-              <div className="hidden sm:block">
-                <h1 className="text-lg font-bold text-white leading-tight">
-                  ScorePredicted
-                </h1>
-                <p className="text-xs text-slate-400">Predictions</p>
-              </div>
-            </Link>
-
-            <nav className="flex items-center gap-1 sm:gap-4 flex-1 justify-center">
-              <Link
-                to="/results"
-                className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors"
-              >
-                Results
-              </Link>
-              <Link
-                to="/predictions"
-                className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors"
-              >
-                Today
-              </Link>
-              <Link
-                to="/stats"
-                className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors"
-              >
-                Stats
-              </Link>
-              <Link
-                to="/"
-                className="px-3 py-2 text-sm font-semibold text-yellow-400 bg-yellow-400/10 rounded-lg"
-              >
-                History
-              </Link>
-            </nav>
-
-            <div className="flex-shrink-0">
-              <span className="text-xs text-slate-500">
-                {filtered.length} matches
-              </span>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header activePath="/" matchCount={filtered.length} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero */}
