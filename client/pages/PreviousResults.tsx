@@ -145,37 +145,37 @@ export default function PreviousResults() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/80 backdrop-blur-sm">
+      <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between h-14">
             <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo to-hot-pink flex items-center justify-center flex-shrink-0">
-                <TrendingUp className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-400 to-lime-500 flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="w-6 h-6 text-slate-900" />
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-lg font-bold text-slate-900 leading-tight">
+                <h1 className="text-lg font-bold text-white leading-tight">
                   ScorePredicted
                 </h1>
-                <p className="text-xs text-slate-500">Predictions</p>
+                <p className="text-xs text-slate-400">Predictions</p>
               </div>
             </Link>
 
             <nav className="flex items-center gap-1 sm:gap-6 flex-1 justify-center">
-              <Link to="/" className="px-3 py-2 text-sm font-medium text-primary bg-primary/10 rounded-lg font-semibold">
+              <Link to="/" className="px-3 py-2 text-sm font-semibold text-yellow-400 bg-yellow-400/10 rounded-lg">
                 Results
               </Link>
-              <Link to="/predictions" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors">
+              <Link to="/predictions" className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors">
                 Today
               </Link>
-              <Link to="/stats" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors">
+              <Link to="/stats" className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors">
                 Stats
               </Link>
             </nav>
 
             <div className="flex-shrink-0">
-              <p className="text-xs text-slate-500">History</p>
+              <p className="text-xs text-slate-400">History</p>
             </div>
           </div>
         </div>
@@ -185,16 +185,16 @@ export default function PreviousResults() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Section */}
         <div className="mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-4">
-            <Trophy className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400/10 border border-yellow-400/20 mb-4">
+            <Trophy className="w-4 h-4 text-yellow-400" />
+            <span className="text-sm font-medium text-yellow-400">
               Previous Results
             </span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-3">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-3">
             Prediction Results
           </h2>
-          <p className="text-lg text-slate-600 max-w-2xl">
+          <p className="text-lg text-slate-300 max-w-2xl">
             View all past predictions and track performance. See which tips won and
             analyze patterns to improve future predictions.
           </p>
@@ -204,23 +204,23 @@ export default function PreviousResults() {
         {loading && (
           <div className="flex items-center justify-center py-16">
             <div className="text-center">
-              <Loader className="w-8 h-8 text-primary animate-spin mx-auto mb-3" />
-              <p className="text-slate-600">Loading previous results...</p>
+              <Loader className="w-8 h-8 text-yellow-400 animate-spin mx-auto mb-3" />
+              <p className="text-slate-300">Loading previous results...</p>
             </div>
           </div>
         )}
 
         {/* Error State */}
         {error && (
-          <div className="p-4 rounded-lg border border-red-200 bg-red-50 mb-8">
+          <div className="p-4 rounded-lg border border-red-700/50 bg-red-900/30 mb-8">
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-semibold text-red-900">Error Loading Results</h3>
-                <p className="text-sm text-red-700 mt-1">{error}</p>
+                <h3 className="font-semibold text-red-300">Error Loading Results</h3>
+                <p className="text-sm text-red-400 mt-1">{error}</p>
                 <button
                   onClick={fetchHistory}
-                  className="text-sm font-medium text-red-600 hover:text-red-700 mt-2 underline"
+                  className="text-sm font-medium text-red-400 hover:text-red-300 mt-2 underline"
                 >
                   Try Again
                 </button>
@@ -232,25 +232,25 @@ export default function PreviousResults() {
         {/* Stats Summary */}
         {!loading && stats.total > 0 && (
           <div className="grid md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white border border-slate-200 rounded-xl p-6">
-              <div className="text-sm font-medium text-slate-600 mb-2">Total Results</div>
-              <div className="text-3xl font-bold text-slate-900">{stats.total}</div>
+            <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+              <div className="text-sm font-medium text-slate-400 mb-2">Total Results</div>
+              <div className="text-3xl font-bold text-white">{stats.total}</div>
               <p className="text-xs text-slate-500 mt-2">All predictions</p>
             </div>
-            <div className="bg-green-50 border border-green-200 rounded-xl p-6">
-              <div className="text-sm font-medium text-green-700 mb-2">Won</div>
-              <div className="text-3xl font-bold text-green-900">{stats.won}</div>
-              <p className="text-xs text-green-600 mt-2">Successful tips</p>
+            <div className="bg-green-900/30 border border-green-700/50 rounded-xl p-6">
+              <div className="text-sm font-medium text-green-300 mb-2">Won</div>
+              <div className="text-3xl font-bold text-green-200">{stats.won}</div>
+              <p className="text-xs text-green-400 mt-2">Successful tips</p>
             </div>
-            <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-              <div className="text-sm font-medium text-red-700 mb-2">Lost</div>
-              <div className="text-3xl font-bold text-red-900">{stats.lost}</div>
-              <p className="text-xs text-red-600 mt-2">Failed tips</p>
+            <div className="bg-red-900/30 border border-red-700/50 rounded-xl p-6">
+              <div className="text-sm font-medium text-red-300 mb-2">Lost</div>
+              <div className="text-3xl font-bold text-red-200">{stats.lost}</div>
+              <p className="text-xs text-red-400 mt-2">Failed tips</p>
             </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-              <div className="text-sm font-medium text-blue-700 mb-2">Win Rate</div>
-              <div className="text-3xl font-bold text-blue-900">{winRate}%</div>
-              <p className="text-xs text-blue-600 mt-2">Success rate</p>
+            <div className="bg-blue-900/30 border border-blue-700/50 rounded-xl p-6">
+              <div className="text-sm font-medium text-blue-300 mb-2">Win Rate</div>
+              <div className="text-3xl font-bold text-blue-200">{winRate}%</div>
+              <p className="text-xs text-blue-400 mt-2">Success rate</p>
             </div>
           </div>
         )}
@@ -268,8 +268,8 @@ export default function PreviousResults() {
                 onClick={() => setFilterStatus(filter.value as FilterStatus)}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   filterStatus === filter.value
-                    ? "bg-primary text-white"
-                    : "bg-white border border-slate-200 text-slate-700 hover:border-primary"
+                    ? "bg-yellow-400 text-slate-900"
+                    : "bg-slate-800 border border-slate-700 text-slate-300 hover:border-yellow-400/50"
                 }`}
               >
                 {filter.label} <span className="ml-2 text-sm opacity-70">({filter.count})</span>
@@ -293,39 +293,39 @@ export default function PreviousResults() {
                   }
                   className={`p-6 rounded-xl border cursor-pointer transition-all ${
                     status === "won"
-                      ? "bg-green-50 border-green-200 hover:border-green-400"
+                      ? "bg-green-900/30 border-green-700/50 hover:border-green-600/50"
                       : status === "lost"
-                      ? "bg-red-50 border-red-200 hover:border-red-400"
-                      : "bg-yellow-50 border-yellow-200 hover:border-yellow-400"
+                      ? "bg-red-900/30 border-red-700/50 hover:border-red-600/50"
+                      : "bg-yellow-900/20 border-yellow-700/50 hover:border-yellow-600/50"
                   }`}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs font-semibold text-slate-500 uppercase">
+                        <span className="text-xs font-semibold text-slate-400 uppercase">
                           {result.league || result.competition || "Sports"}
                         </span>
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-slate-500">
                           {formatDate(result.date)}
                         </span>
                       </div>
-                      <div className="text-sm font-semibold text-slate-900 mb-2">
+                      <div className="text-sm font-semibold text-white mb-2">
                         {result.match || result.tip || "Match"}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       {status === "won" ? (
-                        <div className="flex items-center gap-2 px-3 py-1 bg-green-200 text-green-900 rounded-full">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-green-500/30 text-green-300 rounded-full">
                           <CheckCircle2 className="w-4 h-4" />
                           <span className="text-xs font-semibold">Won</span>
                         </div>
                       ) : status === "lost" ? (
-                        <div className="flex items-center gap-2 px-3 py-1 bg-red-200 text-red-900 rounded-full">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-red-500/30 text-red-300 rounded-full">
                           <XCircle className="w-4 h-4" />
                           <span className="text-xs font-semibold">Lost</span>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2 px-3 py-1 bg-yellow-200 text-yellow-900 rounded-full">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-yellow-500/30 text-yellow-300 rounded-full">
                           <Clock className="w-4 h-4" />
                           <span className="text-xs font-semibold">Pending</span>
                         </div>
@@ -335,14 +335,14 @@ export default function PreviousResults() {
 
                   <div className="flex items-center justify-between text-sm mb-2">
                     <div>
-                      <span className="text-slate-600">Tip: </span>
-                      <span className="font-semibold text-slate-900">
+                      <span className="text-slate-400">Tip: </span>
+                      <span className="font-semibold text-white">
                         {result.tip || "N/A"}
                       </span>
                     </div>
                     <div>
-                      <span className="text-slate-600">Odds: </span>
-                      <span className="font-semibold text-slate-900">
+                      <span className="text-slate-400">Odds: </span>
+                      <span className="font-semibold text-white">
                         {result.odds ? result.odds.toFixed(2) : "N/A"}
                       </span>
                     </div>
@@ -350,8 +350,8 @@ export default function PreviousResults() {
 
                   {result.result && (
                     <div className="text-sm">
-                      <span className="text-slate-600">Result: </span>
-                      <span className="font-semibold text-slate-900">
+                      <span className="text-slate-400">Result: </span>
+                      <span className="font-semibold text-white">
                         {result.result}
                       </span>
                     </div>
@@ -359,9 +359,9 @@ export default function PreviousResults() {
 
                   {/* Expanded View */}
                   {selectedResult === idx && (
-                    <div className="mt-4 pt-4 border-t border-slate-200 animate-in fade-in">
-                      <div className="bg-white/50 rounded p-4">
-                        <h4 className="text-sm font-semibold text-slate-900 mb-3">
+                    <div className="mt-4 pt-4 border-t border-slate-700 animate-in fade-in">
+                      <div className="bg-slate-800/50 rounded p-4">
+                        <h4 className="text-sm font-semibold text-white mb-3">
                           Full Details
                         </h4>
                         <div className="space-y-2 text-sm">
@@ -369,8 +369,8 @@ export default function PreviousResults() {
                             if (["id", "tip", "odds", "result", "date", "league", "match", "status"].includes(key)) return null;
                             return (
                               <div key={key}>
-                                <span className="text-slate-600 capitalize">{key}: </span>
-                                <span className="font-medium text-slate-900">
+                                <span className="text-slate-400 capitalize">{key}: </span>
+                                <span className="font-medium text-slate-300">
                                   {String(value)}
                                 </span>
                               </div>
@@ -389,13 +389,13 @@ export default function PreviousResults() {
         {/* Empty State */}
         {!loading && filteredResults.length === 0 && !error && (
           <div className="text-center py-16">
-            <Trophy className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">
+            <Trophy className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-white mb-2">
               {filterStatus === "all"
                 ? "No Results Yet"
                 : `No ${filterStatus} Results`}
             </h3>
-            <p className="text-slate-600 mb-6">
+            <p className="text-slate-300 mb-6">
               {filterStatus === "all"
                 ? "Check back later for prediction results"
                 : "Try adjusting your filter"}
@@ -403,7 +403,7 @@ export default function PreviousResults() {
             {filterStatus !== "all" && (
               <button
                 onClick={() => setFilterStatus("all")}
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                className="px-4 py-2 bg-yellow-400 text-slate-900 rounded-lg hover:bg-yellow-500 transition-colors font-semibold"
               >
                 View All Results
               </button>
@@ -413,77 +413,77 @@ export default function PreviousResults() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-slate-50 mt-16">
+      <footer className="border-t border-slate-800 bg-slate-900 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <h4 className="font-semibold text-slate-900 mb-4">Product</h4>
-              <ul className="space-y-2 text-sm text-slate-600">
+              <h4 className="font-semibold text-white mb-4">Product</h4>
+              <ul className="space-y-2 text-sm text-slate-400">
                 <li>
-                  <Link to="/" className="hover:text-primary transition-colors">
+                  <Link to="/" className="hover:text-yellow-400 transition-colors">
                     Results
                   </Link>
                 </li>
                 <li>
-                  <Link to="/predictions" className="hover:text-primary transition-colors">
+                  <Link to="/predictions" className="hover:text-yellow-400 transition-colors">
                     Today's Picks
                   </Link>
                 </li>
                 <li>
-                  <Link to="/stats" className="hover:text-primary transition-colors">
+                  <Link to="/stats" className="hover:text-yellow-400 transition-colors">
                     Stats
                   </Link>
                 </li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-slate-900 mb-4">Company</h4>
-              <ul className="space-y-2 text-sm text-slate-600">
+              <h4 className="font-semibold text-white mb-4">Company</h4>
+              <ul className="space-y-2 text-sm text-slate-400">
                 <li>
-                  <a href="#" className="hover:text-primary transition-colors">
+                  <a href="#" className="hover:text-yellow-400 transition-colors">
                     About
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-primary transition-colors">
+                  <a href="#" className="hover:text-yellow-400 transition-colors">
                     Contact
                   </a>
                 </li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-slate-900 mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-slate-600">
+              <h4 className="font-semibold text-white mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm text-slate-400">
                 <li>
-                  <a href="#" className="hover:text-primary transition-colors">
+                  <a href="#" className="hover:text-yellow-400 transition-colors">
                     Privacy
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-primary transition-colors">
+                  <a href="#" className="hover:text-yellow-400 transition-colors">
                     Terms
                   </a>
                 </li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-slate-900 mb-4">Follow</h4>
-              <ul className="space-y-2 text-sm text-slate-600">
+              <h4 className="font-semibold text-white mb-4">Follow</h4>
+              <ul className="space-y-2 text-sm text-slate-400">
                 <li>
-                  <a href="#" className="hover:text-primary transition-colors">
+                  <a href="#" className="hover:text-yellow-400 transition-colors">
                     Twitter
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-primary transition-colors">
+                  <a href="#" className="hover:text-yellow-400 transition-colors">
                     Discord
                   </a>
                 </li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-slate-200 pt-8">
-            <p className="text-center text-sm text-slate-600">
+          <div className="border-t border-slate-800 pt-8">
+            <p className="text-center text-sm text-slate-400">
               © 2026 ScorePredicted. All predictions are for entertainment purposes only.
             </p>
           </div>
