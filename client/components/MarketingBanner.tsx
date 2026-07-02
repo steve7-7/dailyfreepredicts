@@ -31,7 +31,10 @@ export function MarketingBanner() {
             ScorePredicted
           </span>
         </div>
-        <p className="flex items-center text-sm font-normal text-slate-300">
+        <p
+          className="flex items-center text-sm font-normal text-white"
+          style={{ boxShadow: "1px 1px 3px 0px rgba(214, 8, 255, 1)" }}
+        >
           Get today's predictions for your favorite matches
         </p>
       </div>
