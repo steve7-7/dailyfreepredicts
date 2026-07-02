@@ -17,7 +17,6 @@ import {
   Trophy,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useSEO } from "@/hooks/useSEO";
 
 interface HistoryMatch {
   match_dat: string;
@@ -62,15 +61,6 @@ function formatTime(dateStr: string): string {
 }
 
 export default function PastPredictions() {
-  useSEO({
-    title: "Prediction History - ScorePredicted | Past Football Tips & Results",
-    description:
-      "Browse the complete history of football predictions with match details, odds, and outcomes. Filter by won, lost, or pending predictions.",
-    keywords:
-      "past predictions, football tips history, previous predictions, betting history, prediction archive",
-    canonicalUrl: "https://dailyfreepredictions.hyper.co.ke/past-predictions",
-  });
-
   const [matches, setMatches] = useState<HistoryMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
