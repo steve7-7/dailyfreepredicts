@@ -1,457 +1,681 @@
-import { useState, useEffect } from "react";
-import { TrendingUp, AlertCircle, Loader, History, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import {
+  TrendingUp,
+  AlertCircle,
+  Loader,
+  History,
+  CheckCircle2,
+  XCircle,
+  TrendingDown,
+  Globe,
+  Calendar,
+  Target,
+  DollarSign,
+  Search,
+  ChevronDown,
+  ChevronUp,
+  Trophy,
+} from "lucide-react";
 import { Link } from "react-router-dom";
+import { useSEO } from "@/hooks/useSEO";
 
-interface PastPrediction {
-  id: number;
-  start_date: string;
+interface HistoryMatch {
+  match_dat: string;
+  sport: string;
+  country: string;
+  league: string;
   home_team: string;
   away_team: string;
-  prediction: string;
-  status: string;
+  tip: string;
+  fair_odd: number;
+  tip_odd: number;
   result: string;
-  odds: Record<string, number>;
-  competition_name: string;
-  competition_cluster: string;
-  federation: string;
-  season: string;
-  is_expired: boolean;
-  market: string;
-  last_update_at: string;
+  tip_successful: boolean | string | number;
+  tip_profit: number;
 }
 
-type FilterStatus = "all" | "won" | "lost" | "pending";
+type FilterStatus = "all" | "won" | "lost";
+
+const PAGE_SIZE = 50;
+
+function formatDate(dateStr: string): string {
+  try {
+    return new Date(dateStr).toLocaleDateString([], {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+}
+
+function formatTime(dateStr: string): string {
+  try {
+    return new Date(dateStr).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "";
+  }
+}
 
 export default function PastPredictions() {
-  const [predictions, setPredictions] = useState<PastPrediction[]>([]);
+  useSEO({
+    title: "Prediction History - ScorePredicted | Past Football Tips & Results",
+    description:
+      "Browse the complete history of football predictions with match details, odds, and outcomes. Filter by won, lost, or pending predictions.",
+    keywords:
+      "past predictions, football tips history, previous predictions, betting history, prediction archive",
+    canonicalUrl: "https://dailyfreepredictions.hyper.co.ke/past-predictions",
+  });
+
+  const [matches, setMatches] = useState<HistoryMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
-  const [selectedPrediction, setSelectedPrediction] = useState<string | null>(null);
+  const [filter, setFilter] = useState<FilterStatus>("all");
+  const [search, setSearch] = useState("");
+  const [leagueFilter, setLeagueFilter] = useState("all");
+  const [expanded, setExpanded] = useState<number | null>(null);
+  const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    fetchPastPredictions();
-  }, []);
-
-  const fetchPastPredictions = async () => {
+  const fetchHistory = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch("/api/betigolo-history");
-      
-      if (!response.ok) {
-        let errorMessage = `Failed to fetch: ${response.status} ${response.statusText}`;
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-          console.error("API error details:", errorData);
-        } catch (_) {
-          // Response wasn't JSON
-        }
-        throw new Error(errorMessage);
-      }
-      
-      const result = await response.json();
-      console.log("Past predictions response:", result);
-      
-      let predictionsData: PastPrediction[] = [];
-      if (Array.isArray(result)) {
-        predictionsData = result;
-      } else if (result.data && Array.isArray(result.data)) {
-        predictionsData = result.data;
-      }
-      
-      console.log("Processed predictions data:", predictionsData);
-      setPredictions(predictionsData || []);
+      const res = await fetch("/api/betigolo-history");
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+      const data: HistoryMatch[] = await res.json();
+      const sorted = [...data].sort(
+        (a, b) =>
+          new Date(b.match_dat).getTime() - new Date(a.match_dat).getTime(),
+      );
+      setMatches(sorted);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An error occurred while fetching predictions";
-      setError(errorMessage);
-      console.error("Error fetching predictions:", err);
-      setPredictions([]);
+      setError(err instanceof Error ? err.message : "Failed to fetch history");
     } finally {
       setLoading(false);
     }
   };
 
-  const isPredictionCorrect = (pred: PastPrediction): boolean => {
-    if (!pred.result || pred.status !== "finished") return false;
-    return pred.prediction === pred.result;
-  };
+  useEffect(() => {
+    fetchHistory();
+  }, []);
 
-  const filteredPredictions = predictions.filter((pred) => {
-    if (filterStatus === "all") return true;
-    if (filterStatus === "won") return isPredictionCorrect(pred);
-    if (filterStatus === "lost") return pred.status === "finished" && !isPredictionCorrect(pred);
-    if (filterStatus === "pending") return pred.status !== "finished";
-    return true;
-  });
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+    setExpanded(null);
+  }, [filter, search, leagueFilter]);
 
-  const stats = {
-    total: predictions.length,
-    won: predictions.filter(isPredictionCorrect).length,
-    lost: predictions.filter((p) => p.status === "finished" && !isPredictionCorrect(p)).length,
-    pending: predictions.filter((p) => p.status !== "finished").length,
-  };
+  const leagues = useMemo(() => {
+    const set = new Set(matches.map((m) => m.league));
+    return ["all", ...Array.from(set).sort()];
+  }, [matches]);
 
-  const winRate = stats.total > 0
-    ? ((stats.won / (stats.won + stats.lost)) * 100).toFixed(1)
-    : 0;
-
-  function formatDate(isoString: string): string {
-    const date = new Date(isoString);
-    return date.toLocaleDateString([], {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
+  const filtered = useMemo(() => {
+    return matches.filter((m) => {
+      // Ensure tip_successful is properly evaluated as boolean
+      const isWon = m.tip_successful === true || m.tip_successful === "true" || m.tip_successful === 1;
+      if (filter === "won" && !isWon) return false;
+      if (filter === "lost" && isWon) return false;
+      if (leagueFilter !== "all" && m.league !== leagueFilter) return false;
+      if (search.trim()) {
+        const q = search.toLowerCase();
+        return (
+          m.home_team.toLowerCase().includes(q) ||
+          m.away_team.toLowerCase().includes(q) ||
+          m.league.toLowerCase().includes(q) ||
+          m.country.toLowerCase().includes(q) ||
+          m.tip.toLowerCase().includes(q)
+        );
+      }
+      return true;
     });
-  }
+  }, [matches, filter, leagueFilter, search]);
 
-  function formatTime(isoString: string): string {
-    const date = new Date(isoString);
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  }
+  const paginated = filtered.slice(0, page * PAGE_SIZE);
+  const hasMore = paginated.length < filtered.length;
 
-  function getPredictionLabel(prediction: string): string {
-    switch (prediction) {
-      case "1":
-        return "Home Win";
-      case "2":
-        return "Away Win";
-      case "X":
-        return "Draw";
-      case "1X":
-        return "Home Win or Draw";
-      case "12":
-        return "Home or Away Win";
-      case "X2":
-        return "Draw or Away Win";
-      default:
-        return prediction;
+  const won = matches.filter((m) => m.tip_successful).length;
+  const lost = matches.filter((m) => !m.tip_successful).length;
+  const winRate =
+    won + lost > 0 ? ((won / (won + lost)) * 100).toFixed(1) : "0";
+  const totalProfit = matches.reduce((s, m) => s + (m.tip_profit ?? 0), 0);
+  const totalStaked = matches.length;
+  const roi = totalStaked > 0 ? ((totalProfit / totalStaked) * 100).toFixed(1) : "0";
+
+  // Calculate current streak
+  const getCurrentStreak = () => {
+    let streak = 0;
+    let streakType = "none";
+    for (const match of matches) {
+      const matchWon = match.tip_successful === true || match.tip_successful === "true" || match.tip_successful === 1;
+      if (streak === 0) {
+        streakType = matchWon ? "won" : "lost";
+        streak = 1;
+      } else if ((matchWon && streakType === "won") || (!matchWon && streakType === "lost")) {
+        streak++;
+      } else {
+        break;
+      }
     }
-  }
+    return { streak, type: streakType };
+  };
+  const currentStreak = getCurrentStreak();
+
+  // Per-league stats
+  const leagueStats = matches.reduce((acc, m) => {
+    if (!acc[m.league]) {
+      acc[m.league] = { won: 0, total: 0 };
+    }
+    acc[m.league].total++;
+    const isWon = m.tip_successful === true || m.tip_successful === "true" || m.tip_successful === 1;
+    if (isWon) acc[m.league].won++;
+    return acc;
+  }, {} as Record<string, { won: number; total: number }>);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/80 backdrop-blur-sm">
+      <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between h-14">
-            <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo to-hot-pink flex items-center justify-center flex-shrink-0">
-                <TrendingUp className="w-6 h-6 text-white" />
+            <Link
+              to="/"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            >
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-400 to-lime-500 flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="w-6 h-6 text-slate-900" />
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-lg font-bold text-slate-900 leading-tight">
+                <h1 className="text-lg font-bold text-white leading-tight">
                   ScorePredicted
                 </h1>
-                <p className="text-xs text-slate-500">Predictions</p>
+                <p className="text-xs text-slate-400">Predictions</p>
               </div>
             </Link>
 
-            <nav className="flex items-center gap-1 sm:gap-6 flex-1 justify-center">
-              <Link to="/" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors">
+            <nav className="flex items-center gap-1 sm:gap-4 flex-1 justify-center">
+              <Link
+                to="/"
+                className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors"
+              >
+                Results
+              </Link>
+              <Link
+                to="/predictions"
+                className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors"
+              >
                 Today
               </Link>
-              <Link to="/stats" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors">
+              <Link
+                to="/stats"
+                className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors"
+              >
                 Stats
               </Link>
-              <Link to="/past-predictions" className="px-3 py-2 text-sm font-medium text-primary bg-primary/10 rounded-lg font-semibold">
+              <Link
+                to="/live"
+                className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors"
+              >
+                Live
+              </Link>
+              <Link
+                to="/past-predictions"
+                className="px-3 py-2 text-sm font-semibold text-yellow-400 bg-yellow-400/10 rounded-lg"
+              >
                 History
               </Link>
             </nav>
 
             <div className="flex-shrink-0">
-              <p className="text-xs text-slate-500">Past Results</p>
+              <span className="text-xs text-slate-500">
+                {filtered.length} matches
+              </span>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
-        <div className="mb-12">
+        {/* Hero */}
+        <div className="mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-4">
             <History className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-primary">
-              Past Predictions
+              Full History
             </span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-3">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-3">
             Prediction History
           </h2>
-          <p className="text-lg text-slate-600 max-w-2xl">
-            View completed predictions and track which ones won or lost. Analyze past
-            performance to improve future decisions.
+          <p className="text-lg text-slate-400 max-w-2xl">
+            {matches.length.toLocaleString()} predictions published. Search,
+            filter by result or league, and see every detail.
           </p>
         </div>
 
-        {/* Loading State */}
+        {/* Loading */}
         {loading && (
-          <div className="flex items-center justify-center py-16">
-            <div className="text-center">
-              <Loader className="w-8 h-8 text-primary animate-spin mx-auto mb-3" />
-              <p className="text-slate-600">Loading past predictions...</p>
+          <div className="flex items-center justify-center py-20">
+            <Loader className="w-8 h-8 text-primary animate-spin mr-3" />
+            <p className="text-slate-400">Loading history…</p>
+          </div>
+        )}
+
+        {/* Error */}
+        {error && !loading && (
+          <div className="p-4 rounded-lg border border-red-200/30 bg-red-900/20 mb-8 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-red-300">
+                Error loading history
+              </p>
+              <p className="text-sm text-red-300/80 mt-1">{error}</p>
+              <button
+                onClick={fetchHistory}
+                className="text-sm text-red-300 underline mt-2 hover:text-red-200"
+              >
+                Try Again
+              </button>
             </div>
           </div>
         )}
 
-        {/* Error State */}
-        {error && (
-          <div className="p-4 rounded-lg border border-red-200 bg-red-50 mb-8">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <h3 className="font-semibold text-red-900">Error Loading Predictions</h3>
-                <p className="text-sm text-red-700 mt-1">{error}</p>
-                <button
-                  onClick={fetchPastPredictions}
-                  className="text-sm font-medium text-red-600 hover:text-red-700 mt-2 underline"
+        {!loading && !error && matches.length > 0 && (
+          <>
+            {/* Stats row - Top */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <Target className="w-4 h-4 text-slate-400" />
+                  <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">
+                    Total
+                  </span>
+                </div>
+                <div className="text-3xl font-bold text-white">
+                  {matches.length.toLocaleString()}
+                </div>
+                <p className="text-xs text-slate-500 mt-1">All predictions</p>
+              </div>
+
+              <div className="bg-green-900/30 border border-green-700/50 rounded-xl p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-400" />
+                  <span className="text-xs font-medium text-green-400 uppercase tracking-wide">
+                    Won
+                  </span>
+                </div>
+                <div className="text-3xl font-bold text-green-300">{won}</div>
+                <p className="text-xs text-green-400/70 mt-1">
+                  {winRate}% win rate
+                </p>
+              </div>
+
+              <div className="bg-red-900/30 border border-red-700/50 rounded-xl p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <XCircle className="w-4 h-4 text-red-400" />
+                  <span className="text-xs font-medium text-red-400 uppercase tracking-wide">
+                    Lost
+                  </span>
+                </div>
+                <div className="text-3xl font-bold text-red-300">{lost}</div>
+                <p className="text-xs text-red-400/70 mt-1">Failed tips</p>
+              </div>
+
+              <div
+                className={`${totalProfit >= 0 ? "bg-emerald-900/30 border-emerald-700/50" : "bg-red-900/30 border-red-700/50"} border rounded-xl p-5`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <DollarSign
+                    className={`w-4 h-4 ${totalProfit >= 0 ? "text-emerald-400" : "text-red-400"}`}
+                  />
+                  <span
+                    className={`text-xs font-medium uppercase tracking-wide ${totalProfit >= 0 ? "text-emerald-400" : "text-red-400"}`}
+                  >
+                    Profit
+                  </span>
+                </div>
+                <div
+                  className={`text-3xl font-bold ${totalProfit >= 0 ? "text-emerald-300" : "text-red-300"}`}
                 >
-                  Try Again
-                </button>
+                  {totalProfit >= 0 ? "+" : ""}
+                  {totalProfit.toFixed(1)}u
+                </div>
+                <p
+                  className={`text-xs mt-1 ${totalProfit >= 0 ? "text-emerald-400/70" : "text-red-400/70"}`}
+                >
+                  Total units
+                </p>
               </div>
             </div>
-          </div>
-        )}
 
-        {/* Stats Summary */}
-        {!loading && stats.total > 0 && (
-          <div className="grid md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white border border-slate-200 rounded-xl p-6">
-              <div className="text-sm font-medium text-slate-600 mb-2">Total Predictions</div>
-              <div className="text-3xl font-bold text-slate-900">{stats.total}</div>
-              <p className="text-xs text-slate-500 mt-2">All time predictions</p>
-            </div>
-            <div className="bg-green-50 border border-green-200 rounded-xl p-6">
-              <div className="text-sm font-medium text-green-700 mb-2">Won</div>
-              <div className="text-3xl font-bold text-green-900">{stats.won}</div>
-              <p className="text-xs text-green-600 mt-2">Successful predictions</p>
-            </div>
-            <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-              <div className="text-sm font-medium text-red-700 mb-2">Lost</div>
-              <div className="text-3xl font-bold text-red-900">{stats.lost}</div>
-              <p className="text-xs text-red-600 mt-2">Failed predictions</p>
-            </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-              <div className="text-sm font-medium text-blue-700 mb-2">Win Rate</div>
-              <div className="text-3xl font-bold text-blue-900">{winRate}%</div>
-              <p className="text-xs text-blue-600 mt-2">Success rate</p>
-            </div>
-          </div>
-        )}
+            {/* Stats row - Bottom */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+              <div className={`${parseFloat(roi) >= 0 ? "bg-blue-900/30 border-blue-700/50" : "bg-red-900/30 border-red-700/50"} border rounded-xl p-5`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className={`w-4 h-4 ${parseFloat(roi) >= 0 ? "text-blue-400" : "text-red-400"}`} />
+                  <span className={`text-xs font-medium uppercase tracking-wide ${parseFloat(roi) >= 0 ? "text-blue-400" : "text-red-400"}`}>
+                    ROI
+                  </span>
+                </div>
+                <div className={`text-3xl font-bold ${parseFloat(roi) >= 0 ? "text-blue-300" : "text-red-300"}`}>
+                  {parseFloat(roi) >= 0 ? "+" : ""}
+                  {roi}%
+                </div>
+                <p className={`text-xs mt-1 ${parseFloat(roi) >= 0 ? "text-blue-400/70" : "text-red-400/70"}`}>
+                  Return on investment
+                </p>
+              </div>
 
-        {/* Filter Buttons */}
-        {!loading && stats.total > 0 && (
-          <div className="flex flex-wrap gap-2 mb-6">
-            {[
-              { value: "all", label: "All", count: stats.total },
-              { value: "won", label: "Won", count: stats.won },
-              { value: "lost", label: "Lost", count: stats.lost },
-            ].map((filter) => (
-              <button
-                key={filter.value}
-                onClick={() => setFilterStatus(filter.value as FilterStatus)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  filterStatus === filter.value
-                    ? "bg-primary text-white"
-                    : "bg-white border border-slate-200 text-slate-700 hover:border-primary"
-                }`}
-              >
-                {filter.label} <span className="ml-2 text-sm opacity-70">({filter.count})</span>
-              </button>
-            ))}
-          </div>
-        )}
+              <div className={`${currentStreak.type === "won" ? "bg-green-900/30 border-green-700/50" : "bg-red-900/30 border-red-700/50"} border rounded-xl p-5`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className={`w-4 h-4 ${currentStreak.type === "won" ? "text-green-400" : "text-red-400"}`} />
+                  <span className={`text-xs font-medium uppercase tracking-wide ${currentStreak.type === "won" ? "text-green-400" : "text-red-400"}`}>
+                    Streak
+                  </span>
+                </div>
+                <div className={`text-3xl font-bold ${currentStreak.type === "won" ? "text-green-300" : "text-red-300"}`}>
+                  {currentStreak.streak} {currentStreak.type === "won" ? "W" : "L"}
+                </div>
+                <p className={`text-xs mt-1 ${currentStreak.type === "won" ? "text-green-400/70" : "text-red-400/70"}`}>
+                  Current streak
+                </p>
+              </div>
 
-        {/* Predictions List */}
-        {!loading && filteredPredictions.length > 0 && (
-          <div className="space-y-4">
-            {filteredPredictions.map((pred, index) => {
-              const isWon = isPredictionCorrect(pred);
-              const predKey = pred.id || `prediction-${index}`;
-              return (
-                <div
-                  key={predKey}
-                  onClick={() =>
-                    setSelectedPrediction(
-                      selectedPrediction === predKey ? null : predKey
-                    )
-                  }
-                  className={`p-6 rounded-xl border cursor-pointer transition-all ${
-                    isWon
-                      ? "bg-green-50 border-green-200 hover:border-green-400"
-                      : pred.status === "finished"
-                      ? "bg-red-50 border-red-200 hover:border-red-400"
-                      : "bg-yellow-50 border-yellow-200 hover:border-yellow-400"
-                  }`}
+              <div className="bg-purple-900/30 border border-purple-700/50 rounded-xl p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <Trophy className="w-4 h-4 text-purple-400" />
+                  <span className="text-xs font-medium text-purple-400 uppercase tracking-wide">
+                    Avg Odds
+                  </span>
+                </div>
+                <div className="text-3xl font-bold text-purple-300">
+                  {(matches.reduce((s, m) => s + (m.tip_odd ?? 0), 0) / matches.length).toFixed(2)}
+                </div>
+                <p className="text-xs text-purple-400/70 mt-1">
+                  Average odds offered
+                </p>
+              </div>
+            </div>
+
+            {/* Filters bar */}
+            <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 mb-6 space-y-3">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search team, league, country or tip…"
+                  className="w-full pl-10 pr-4 py-2.5 border border-slate-700 rounded-lg text-sm bg-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {/* Result filters */}
+                {(["all", "won", "lost"] as FilterStatus[]).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors capitalize ${
+                      filter === f
+                        ? "bg-primary text-white"
+                        : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                    }`}
+                  >
+                    {f === "all"
+                      ? `All (${matches.length})`
+                      : f === "won"
+                        ? `Won (${won})`
+                        : `Lost (${lost})`}
+                  </button>
+                ))}
+
+                {/* League dropdown */}
+                <select
+                  value={leagueFilter}
+                  onChange={(e) => setLeagueFilter(e.target.value)}
+                  className="ml-auto px-3 py-1.5 border border-slate-700 rounded-lg text-sm bg-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary max-w-[220px]"
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs font-semibold text-slate-500 uppercase">
-                          {pred.competition_name}
-                        </span>
-                        <span className="text-xs text-slate-400">
-                          {formatDate(pred.start_date)}
-                        </span>
+                  <option value="all">All Leagues</option>
+                  {leagues.slice(1).map((l) => (
+                    <option key={l} value={l}>
+                      {l}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {(search || leagueFilter !== "all" || filter !== "all") && (
+                <p className="text-xs text-slate-400">
+                  Showing {filtered.length.toLocaleString()} of{" "}
+                  {matches.length.toLocaleString()} predictions
+                  <button
+                    onClick={() => {
+                      setSearch("");
+                      setLeagueFilter("all");
+                      setFilter("all");
+                    }}
+                    className="ml-2 text-primary underline"
+                  >
+                    Clear filters
+                  </button>
+                </p>
+              )}
+            </div>
+
+            {/* Match list */}
+            <div className="space-y-3">
+              {paginated.map((match, idx) => {
+                const isWon =
+                  match.tip_successful === true ||
+                  match.tip_successful === "true" ||
+                  match.tip_successful === 1;
+
+                return (
+                  <div
+                    key={idx}
+                    className={`cursor-pointer rounded-xl border overflow-hidden transition-all ${
+                      isWon
+                        ? "bg-green-900/30 border-green-700/50 hover:border-green-600"
+                        : "bg-red-900/30 border-red-700/50 hover:border-red-600"
+                    }`}
+                    onClick={() => setExpanded(expanded === idx ? null : idx)}
+                  >
+                    <div className="p-5">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
+                            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                              <Globe className="w-3.5 h-3.5" />
+                              {match.country} · {match.league}
+                            </div>
+                            <div className="flex items-center gap-1 text-xs text-slate-500">
+                              <Calendar className="w-3 h-3" />
+                              {formatDate(match.match_dat)} {formatTime(match.match_dat)}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-base font-bold text-white truncate">
+                              {match.home_team}
+                            </span>
+                            <span className="text-xs font-semibold text-slate-500 flex-shrink-0">
+                              vs
+                            </span>
+                            <span className="text-base font-bold text-white truncate">
+                              {match.away_team}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex-shrink-0 flex items-center gap-2">
+                          {isWon ? (
+                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/30 text-green-300 rounded-full">
+                              <CheckCircle2 className="w-4 h-4" />
+                              <span className="text-xs font-bold">Won</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/30 text-red-300 rounded-full">
+                              <XCircle className="w-4 h-4" />
+                              <span className="text-xs font-bold">Lost</span>
+                            </div>
+                          )}
+                          {expanded === idx ? (
+                            <ChevronUp className="w-4 h-4 text-slate-500" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 text-slate-500" />
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="text-sm font-semibold text-slate-900">
-                          {pred.home_team}
+
+                      <div className="mt-4 pt-4 border-t border-slate-700 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="bg-slate-700/50 rounded-lg p-3 border border-slate-600">
+                          <p className="text-xs text-slate-400 mb-1">Tip</p>
+                          <p className="text-sm font-bold text-primary leading-tight">
+                            {match.tip}
+                          </p>
                         </div>
-                        <span className="text-xs text-slate-500 font-medium">vs</span>
-                        <div className="text-sm font-semibold text-slate-900">
-                          {pred.away_team}
+                        <div className="bg-slate-700/50 rounded-lg p-3 border border-slate-600">
+                          <p className="text-xs text-slate-400 mb-1">Tip Odds</p>
+                          <p className="text-sm font-bold text-white">
+                            {match.tip_odd?.toFixed(2)}
+                          </p>
+                        </div>
+                        <div className="bg-slate-700/50 rounded-lg p-3 border border-slate-600">
+                          <p className="text-xs text-slate-400 mb-1">Score</p>
+                          <p className="text-sm font-bold text-white">
+                            {match.result}
+                          </p>
+                        </div>
+                        <div
+                          className={`rounded-lg p-3 border ${match.tip_profit >= 0 ? "bg-green-900/30 border-green-700/50" : "bg-red-900/30 border-red-700/50"}`}
+                        >
+                          <p className="text-xs text-slate-400 mb-1">Profit</p>
+                          <div className="flex items-center gap-1">
+                            {match.tip_profit >= 0 ? (
+                              <TrendingUp className="w-3.5 h-3.5 text-green-400" />
+                            ) : (
+                              <TrendingDown className="w-3.5 h-3.5 text-red-400" />
+                            )}
+                            <p
+                              className={`text-sm font-bold ${match.tip_profit >= 0 ? "text-green-300" : "text-red-300"}`}
+                            >
+                              {match.tip_profit >= 0 ? "+" : ""}
+                              {match.tip_profit?.toFixed(1)}u
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {isWon ? (
-                        <div className="flex items-center gap-2 px-3 py-1 bg-green-200 text-green-900 rounded-full">
-                          <CheckCircle2 className="w-4 h-4" />
-                          <span className="text-xs font-semibold">Won</span>
-                        </div>
-                      ) : pred.status === "finished" ? (
-                        <div className="flex items-center gap-2 px-3 py-1 bg-red-200 text-red-900 rounded-full">
-                          <XCircle className="w-4 h-4" />
-                          <span className="text-xs font-semibold">Lost</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 px-3 py-1 bg-yellow-200 text-yellow-900 rounded-full">
-                          <Clock className="w-4 h-4" />
-                          <span className="text-xs font-semibold">Pending</span>
+
+                      {expanded === idx && (
+                        <div className="mt-4 pt-4 border-t border-slate-700 animate-in fade-in duration-200">
+                          <div className="grid sm:grid-cols-3 gap-3 text-sm">
+                            <div className="bg-slate-700/30 rounded-lg p-3 border border-slate-600">
+                              <p className="text-xs text-slate-400 mb-1">Sport</p>
+                              <p className="font-semibold text-white">
+                                {match.sport}
+                              </p>
+                            </div>
+                            <div className="bg-slate-700/30 rounded-lg p-3 border border-slate-600">
+                              <p className="text-xs text-slate-400 mb-1">Fair Odd</p>
+                              <p className="font-semibold text-white">
+                                {match.fair_odd?.toFixed(2)}
+                              </p>
+                            </div>
+                            <div className="bg-slate-700/30 rounded-lg p-3 border border-slate-600">
+                              <p className="text-xs text-slate-400 mb-1">Value Edge</p>
+                              <p
+                                className={`font-semibold ${match.tip_odd > match.fair_odd ? "text-green-400" : "text-slate-400"}`}
+                              >
+                                {match.tip_odd > match.fair_odd
+                                  ? `+${((match.tip_odd / match.fair_odd - 1) * 100).toFixed(1)}%`
+                                  : "—"}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
                   </div>
+                );
+              })}
+            </div>
 
-                  <div className="flex items-center justify-between text-sm">
-                    <div>
-                      <span className="text-slate-600">Our Prediction: </span>
-                      <span className="font-semibold text-slate-900">
-                        {getPredictionLabel(pred.prediction)}
-                      </span>
-                    </div>
-                    {pred.status === "finished" && (
-                      <div>
-                        <span className="text-slate-600">Result: </span>
-                        <span className="font-semibold text-slate-900">
-                          {getPredictionLabel(pred.result)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Expanded View */}
-                  {selectedPrediction === predKey && (
-                    <div className="mt-4 pt-4 border-t border-slate-200 animate-in fade-in">
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <h4 className="text-sm font-semibold text-slate-900 mb-3">
-                            Odds
-                          </h4>
-                          <div className="grid grid-cols-3 gap-2">
-                            {Object.entries(pred.odds).map(([market, odd]) => (
-                              <div
-                                key={market}
-                                className="bg-white/50 p-2 rounded border border-slate-200 text-center"
-                              >
-                                <div className="text-xs font-semibold text-slate-600">
-                                  {market}
-                                </div>
-                                <div className="text-sm font-bold text-primary mt-1">
-                                  {odd.toFixed(2)}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-semibold text-slate-900 mb-3">
-                            Details
-                          </h4>
-                          <div className="space-y-2 text-sm">
-                            <div>
-                              <span className="text-slate-600">Season: </span>
-                              <span className="font-medium text-slate-900">{pred.season}</span>
-                            </div>
-                            <div>
-                              <span className="text-slate-600">Region: </span>
-                              <span className="font-medium text-slate-900">
-                                {pred.competition_cluster}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-slate-600">Time: </span>
-                              <span className="font-medium text-slate-900">
-                                {formatTime(pred.start_date)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!loading && filteredPredictions.length === 0 && !error && (
-          <div className="text-center py-16">
-            <History className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">
-              {filterStatus === "all"
-                ? "No Predictions Yet"
-                : `No ${filterStatus} Predictions`}
-            </h3>
-            <p className="text-slate-600 mb-6">
-              {filterStatus === "all"
-                ? "Check back later for prediction history"
-                : "Try adjusting your filter"}
-            </p>
-            {filterStatus !== "all" && (
-              <button
-                onClick={() => setFilterStatus("all")}
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-              >
-                View All Predictions
-              </button>
+            {/* Load more */}
+            {hasMore && (
+              <div className="text-center mt-8">
+                <button
+                  onClick={() => setPage((p) => p + 1)}
+                  className="px-8 py-3 bg-slate-800 border-2 border-primary/30 text-primary font-semibold rounded-xl hover:bg-primary/10 transition-colors"
+                >
+                  Load more ({filtered.length - paginated.length} remaining)
+                </button>
+              </div>
             )}
-          </div>
+
+            {/* Empty */}
+            {filtered.length === 0 && (
+              <div className="text-center py-16">
+                <History className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+                <h3 className="font-semibold text-white mb-2">
+                  No matches found
+                </h3>
+                <p className="text-slate-400 text-sm mb-4">
+                  Try adjusting your search or filters
+                </p>
+                <button
+                  onClick={() => {
+                    setSearch("");
+                    setLeagueFilter("all");
+                    setFilter("all");
+                  }}
+                  className="px-4 py-2 bg-primary text-white rounded-lg text-sm"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            )}
+          </>
         )}
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-slate-50 mt-16">
+      <footer className="border-t border-slate-800 bg-slate-900 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <h4 className="font-semibold text-slate-900 mb-4">Product</h4>
-              <ul className="space-y-2 text-sm text-slate-600">
+              <h4 className="font-semibold text-white mb-4">Product</h4>
+              <ul className="space-y-2 text-sm text-slate-400">
                 <li>
                   <Link to="/" className="hover:text-primary transition-colors">
-                    Predictions
+                    Results
                   </Link>
                 </li>
                 <li>
-                  <Link to="/past-predictions" className="hover:text-primary transition-colors">
+                  <Link
+                    to="/past-predictions"
+                    className="hover:text-primary transition-colors"
+                  >
                     History
                   </Link>
                 </li>
                 <li>
-                  <Link to="/stats" className="hover:text-primary transition-colors">
+                  <Link
+                    to="/stats"
+                    className="hover:text-primary transition-colors"
+                  >
                     Stats
                   </Link>
                 </li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-slate-900 mb-4">Company</h4>
-              <ul className="space-y-2 text-sm text-slate-600">
+              <h4 className="font-semibold text-white mb-4">Company</h4>
+              <ul className="space-y-2 text-sm text-slate-400">
                 <li>
                   <a href="#" className="hover:text-primary transition-colors">
                     About
@@ -465,8 +689,8 @@ export default function PastPredictions() {
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-slate-900 mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-slate-600">
+              <h4 className="font-semibold text-white mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm text-slate-400">
                 <li>
                   <a href="#" className="hover:text-primary transition-colors">
                     Privacy
@@ -480,8 +704,8 @@ export default function PastPredictions() {
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-slate-900 mb-4">Follow</h4>
-              <ul className="space-y-2 text-sm text-slate-600">
+              <h4 className="font-semibold text-white mb-4">Follow</h4>
+              <ul className="space-y-2 text-sm text-slate-400">
                 <li>
                   <a href="#" className="hover:text-primary transition-colors">
                     Twitter
@@ -495,9 +719,10 @@ export default function PastPredictions() {
               </ul>
             </div>
           </div>
-          <div className="border-t border-slate-200 pt-8">
-            <p className="text-center text-sm text-slate-600">
-              © 2026 ScorePredicted. All predictions are for entertainment purposes only.
+          <div className="border-t border-slate-800 pt-8">
+            <p className="text-center text-sm text-slate-400">
+              © 2026 ScorePredicted. All predictions are for entertainment
+              purposes only.
             </p>
           </div>
         </div>
