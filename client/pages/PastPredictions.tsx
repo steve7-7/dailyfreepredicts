@@ -27,7 +27,7 @@ export default function PastPredictions() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
-  const [selectedPrediction, setSelectedPrediction] = useState<number | null>(null);
+  const [selectedPrediction, setSelectedPrediction] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPastPredictions();
@@ -267,14 +267,15 @@ export default function PastPredictions() {
         {/* Predictions List */}
         {!loading && filteredPredictions.length > 0 && (
           <div className="space-y-4">
-            {filteredPredictions.map((pred) => {
+            {filteredPredictions.map((pred, index) => {
               const isWon = isPredictionCorrect(pred);
+              const predKey = pred.id || `prediction-${index}`;
               return (
                 <div
-                  key={pred.id}
+                  key={predKey}
                   onClick={() =>
                     setSelectedPrediction(
-                      selectedPrediction === pred.id ? null : pred.id
+                      selectedPrediction === predKey ? null : predKey
                     )
                   }
                   className={`p-6 rounded-xl border cursor-pointer transition-all ${
@@ -343,7 +344,7 @@ export default function PastPredictions() {
                   </div>
 
                   {/* Expanded View */}
-                  {selectedPrediction === pred.id && (
+                  {selectedPrediction === predKey && (
                     <div className="mt-4 pt-4 border-t border-slate-200 animate-in fade-in">
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
