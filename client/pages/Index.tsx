@@ -235,7 +235,7 @@ export default function Index() {
                 Stats
               </Link>
               <Link
-                to="/past-predictions"
+                to="/"
                 className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors"
               >
                 History

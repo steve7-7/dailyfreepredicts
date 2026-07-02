@@ -189,7 +189,7 @@ export default function PastPredictions() {
 
             <nav className="flex items-center gap-1 sm:gap-4 flex-1 justify-center">
               <Link
-                to="/"
+                to="/results"
                 className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors"
               >
                 Results
@@ -207,13 +207,7 @@ export default function PastPredictions() {
                 Stats
               </Link>
               <Link
-                to="/live"
-                className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors"
-              >
-                Live
-              </Link>
-              <Link
-                to="/past-predictions"
+                to="/"
                 className="px-3 py-2 text-sm font-semibold text-yellow-400 bg-yellow-400/10 rounded-lg"
               >
                 History

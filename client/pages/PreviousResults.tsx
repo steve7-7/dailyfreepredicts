@@ -172,6 +172,9 @@ export default function PreviousResults() {
               <Link to="/stats" className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors">
                 Stats
               </Link>
+              <Link to="/" className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors">
+                History
+              </Link>
             </nav>
 
             <div className="flex-shrink-0">

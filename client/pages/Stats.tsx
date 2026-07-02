@@ -153,7 +153,7 @@ export default function Stats() {
               <Link to="/stats" className="px-3 py-2 text-sm font-semibold text-yellow-400 bg-yellow-400/10 rounded-lg">
                 Stats
               </Link>
-              <Link to="/past-predictions" className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors">
+              <Link to="/" className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors">
                 History
               </Link>
             </nav>
