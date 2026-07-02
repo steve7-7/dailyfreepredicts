@@ -7,7 +7,12 @@ interface CacheEntry {
   ttl: number;
 }
 
+interface PendingRequest {
+  promise: Promise<unknown>;
+}
+
 const cache = new Map<string, CacheEntry>();
+const pendingRequests = new Map<string, PendingRequest>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 interface PredictionApiMatch {
@@ -67,6 +72,21 @@ export const handlePredictions: RequestHandler = async (req, res) => {
     return res.json(cached.data);
   }
 
+  // Check if request is already in flight
+  const pending = pendingRequests.get(cacheKey);
+  if (pending) {
+    console.log("Waiting for in-flight prediction request");
+    try {
+      const data = await pending.promise;
+      return res.json(data);
+    } catch (error) {
+      return res.status(500).json({
+        error: "Failed to fetch predictions",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  }
+
   const url =
     "https://football-prediction-api.p.rapidapi.com/api/v2/predictions?market=classic";
 
@@ -89,49 +109,54 @@ export const handlePredictions: RequestHandler = async (req, res) => {
     },
   };
 
-  try {
-    console.log("Fetching predictions from RapidAPI...");
-    const response = await fetchWithRetry(url, options);
+  // Create promise for request deduplication
+  const requestPromise = (async () => {
+    try {
+      console.log("Fetching predictions from RapidAPI...");
+      const response = await fetchWithRetry(url, options);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`API Error: ${response.status} ${response.statusText}`, errorText);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`API Error: ${response.status} ${response.statusText}`, errorText);
 
-      if (response.status === 403) {
-        return res.status(403).json({
-          error: "API authentication failed",
-          details: "Invalid or expired API key. Please verify your RapidAPI credentials."
-        });
+        if (response.status === 403) {
+          throw new Error("API authentication failed: Invalid or expired API key");
+        }
+        throw new Error(`Failed to fetch predictions: ${response.statusText}`);
       }
-      return res.status(response.status).json({
-        error: `Failed to fetch predictions: ${response.statusText}`,
-        status: response.status,
-        details: errorText
+
+      const data = await response.json();
+      console.log("Predictions fetched successfully");
+
+      let responseData;
+      if (!isSubscribed && Array.isArray(data.data)) {
+        responseData = {
+          ...data,
+          data: data.data.map(redactPredictionForVisitor),
+          isSubscribed: false,
+        };
+      } else {
+        responseData = { ...data, isSubscribed };
+      }
+
+      // Cache the response
+      cache.set(cacheKey, {
+        data: responseData,
+        timestamp: Date.now(),
+        ttl: CACHE_TTL
       });
+
+      return responseData;
+    } finally {
+      pendingRequests.delete(cacheKey);
     }
+  })();
 
-    const data = await response.json();
-    console.log("Predictions fetched successfully");
+  pendingRequests.set(cacheKey, { promise: requestPromise });
 
-    let responseData;
-    if (!isSubscribed && Array.isArray(data.data)) {
-      responseData = {
-        ...data,
-        data: data.data.map(redactPredictionForVisitor),
-        isSubscribed: false,
-      };
-    } else {
-      responseData = { ...data, isSubscribed };
-    }
-
-    // Cache the response
-    cache.set(cacheKey, {
-      data: responseData,
-      timestamp: Date.now(),
-      ttl: CACHE_TTL
-    });
-
-    res.json(responseData);
+  try {
+    const data = await requestPromise;
+    res.json(data);
   } catch (error) {
     console.error("Error fetching predictions:", error);
     res.status(500).json({
