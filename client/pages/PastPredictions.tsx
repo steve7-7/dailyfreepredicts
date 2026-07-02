@@ -37,7 +37,7 @@ export default function PastPredictions() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch("/api/past-predictions?status=finished&limit=50");
+      const response = await fetch("/api/betigolo-history");
       
       if (!response.ok) {
         let errorMessage = `Failed to fetch: ${response.status} ${response.statusText}`;
