@@ -1,16 +1,24 @@
 import { RequestHandler } from "express";
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3): Promise<Response> {
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  maxRetries = 3,
+): Promise<Response> {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       const response = await fetch(url, options);
 
       if (response.status === 429) {
-        const retryAfter = response.headers.get('retry-after');
-        const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
-        console.warn(`Rate limited. Waiting ${waitTime}ms before retry ${attempt + 1}/${maxRetries}`);
+        const retryAfter = response.headers.get("retry-after");
+        const waitTime = retryAfter
+          ? parseInt(retryAfter) * 1000
+          : Math.pow(2, attempt) * 1000;
+        console.warn(
+          `Rate limited. Waiting ${waitTime}ms before retry ${attempt + 1}/${maxRetries}`,
+        );
         if (attempt < maxRetries - 1) {
           await sleep(waitTime);
           continue;
@@ -28,7 +36,7 @@ async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3)
       throw error;
     }
   }
-  throw new Error('Max retries exceeded');
+  throw new Error("Max retries exceeded");
 }
 
 export const handlePerformanceStats: RequestHandler = async (req, res) => {
@@ -39,7 +47,8 @@ export const handlePerformanceStats: RequestHandler = async (req, res) => {
     console.error("API key not configured");
     return res.status(500).json({
       error: "API key not configured",
-      details: "RAPIDAPI_KEY or PREDICTIONS_KEY environment variable is missing"
+      details:
+        "RAPIDAPI_KEY or PREDICTIONS_KEY environment variable is missing",
     });
   }
 
@@ -60,18 +69,21 @@ export const handlePerformanceStats: RequestHandler = async (req, res) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`API Error: ${response.status} ${response.statusText}`, errorText);
+      console.error(
+        `API Error: ${response.status} ${response.statusText}`,
+        errorText,
+      );
 
       if (response.status === 403) {
         return res.status(403).json({
           error: "API authentication failed",
-          details: "Invalid or expired API key"
+          details: "Invalid or expired API key",
         });
       }
 
       return res.status(response.status).json({
         error: `Failed to fetch performance stats: ${response.statusText}`,
-        status: response.status
+        status: response.status,
       });
     }
 
@@ -82,7 +94,7 @@ export const handlePerformanceStats: RequestHandler = async (req, res) => {
     console.error("Error fetching performance stats:", error);
     res.status(500).json({
       error: "Failed to fetch performance stats",
-      details: error instanceof Error ? error.message : "Unknown error"
+      details: error instanceof Error ? error.message : "Unknown error",
     });
   }
 };

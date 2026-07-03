@@ -31,17 +31,25 @@ function redactPredictionForVisitor(match: PredictionApiMatch) {
   };
 }
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 5): Promise<Response> {
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  maxRetries = 5,
+): Promise<Response> {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       const response = await fetch(url, options);
 
       if (response.status === 429) {
-        const retryAfter = response.headers.get('retry-after');
-        const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt + 1) * 1000;
-        console.warn(`Rate limited. Waiting ${waitTime}ms before retry ${attempt + 1}/${maxRetries}`);
+        const retryAfter = response.headers.get("retry-after");
+        const waitTime = retryAfter
+          ? parseInt(retryAfter) * 1000
+          : Math.pow(2, attempt + 1) * 1000;
+        console.warn(
+          `Rate limited. Waiting ${waitTime}ms before retry ${attempt + 1}/${maxRetries}`,
+        );
         if (attempt < maxRetries - 1) {
           await sleep(waitTime);
           continue;
@@ -59,7 +67,7 @@ async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 5)
       throw error;
     }
   }
-  throw new Error('Max retries exceeded');
+  throw new Error("Max retries exceeded");
 }
 
 export const handlePredictions: RequestHandler = async (req, res) => {
@@ -81,7 +89,8 @@ export const handlePredictions: RequestHandler = async (req, res) => {
       const data = await pending.promise;
       return res.json(data);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       console.error("[Predictions] Pending request failed:", errorMessage);
       const errorResponse: ApiErrorResponse = {
         error: "Failed to fetch predictions",
@@ -99,11 +108,14 @@ export const handlePredictions: RequestHandler = async (req, res) => {
   const apiKey = process.env.RAPIDAPI_KEY || process.env.PREDICTIONS_KEY;
 
   if (!apiKey) {
-    console.error("[Predictions] API key not configured - RAPIDAPI_KEY or PREDICTIONS_KEY missing");
+    console.error(
+      "[Predictions] API key not configured - RAPIDAPI_KEY or PREDICTIONS_KEY missing",
+    );
     const errorResponse: ApiErrorResponse = {
       error: "API configuration error",
       code: ApiErrorCode.API_KEY_MISSING,
-      details: "Server is missing required API credentials. Please contact support.",
+      details:
+        "Server is missing required API credentials. Please contact support.",
       retryable: false,
     };
     return res.status(500).json(errorResponse);
@@ -126,7 +138,10 @@ export const handlePredictions: RequestHandler = async (req, res) => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`[Predictions] API Error: ${response.status} ${response.statusText}`, errorText);
+        console.error(
+          `[Predictions] API Error: ${response.status} ${response.statusText}`,
+          errorText,
+        );
 
         if (response.status === 403) {
           const error = new Error("API_AUTH_FAILED");
@@ -154,7 +169,10 @@ export const handlePredictions: RequestHandler = async (req, res) => {
       try {
         data = await response.json();
       } catch (parseError) {
-        console.error("[Predictions] Failed to parse API response as JSON:", parseError);
+        console.error(
+          "[Predictions] Failed to parse API response as JSON:",
+          parseError,
+        );
         const error = new Error("INVALID_RESPONSE");
         (error as any).code = ApiErrorCode.INVALID_RESPONSE;
         (error as any).retryable = false;
@@ -178,7 +196,7 @@ export const handlePredictions: RequestHandler = async (req, res) => {
       cache.set(cacheKey, {
         data: responseData,
         timestamp: Date.now(),
-        ttl: CACHE_TTL
+        ttl: CACHE_TTL,
       });
 
       return responseData;
@@ -186,9 +204,13 @@ export const handlePredictions: RequestHandler = async (req, res) => {
       const errorCode = (error as any)?.code || ApiErrorCode.FETCH_FAILED;
       const retryable = (error as any)?.retryable ?? true;
       const retryAfter = (error as any)?.retryAfter;
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
 
-      console.error(`[Predictions] Request failed with code ${errorCode}:`, errorMessage);
+      console.error(
+        `[Predictions] Request failed with code ${errorCode}:`,
+        errorMessage,
+      );
 
       // Re-throw with additional metadata
       const enrichedError = new Error(errorMessage);
@@ -210,9 +232,14 @@ export const handlePredictions: RequestHandler = async (req, res) => {
     const errorCode = (error as any)?.code || ApiErrorCode.FETCH_FAILED;
     const retryable = (error as any)?.retryable ?? true;
     const retryAfter = (error as any)?.retryAfter;
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
 
-    console.error(`[Predictions] Request failed:`, { code: errorCode, retryable, message: errorMessage });
+    console.error(`[Predictions] Request failed:`, {
+      code: errorCode,
+      retryable,
+      message: errorMessage,
+    });
 
     // Determine HTTP status code based on error type
     let statusCode = 500;

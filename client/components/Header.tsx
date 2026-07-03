@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { TrendingUp, Menu } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {
@@ -51,7 +56,7 @@ export function Header({ activePath = "/", matchCount }: HeaderProps) {
                   "px-3 py-2 text-sm font-medium rounded-lg transition-colors",
                   isActive(link.href)
                     ? "text-yellow-400 bg-yellow-400/10"
-                    : "text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50"
+                    : "text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50",
                 )}
               >
                 {link.label}
@@ -62,7 +67,9 @@ export function Header({ activePath = "/", matchCount }: HeaderProps) {
           {/* Desktop Match Count */}
           <div className="hidden md:flex flex-shrink-0">
             {matchCount !== undefined && (
-              <span className="text-xs text-slate-500">{matchCount} matches</span>
+              <span className="text-xs text-slate-500">
+                {matchCount} matches
+              </span>
             )}
           </div>
 
@@ -92,7 +99,7 @@ export function Header({ activePath = "/", matchCount }: HeaderProps) {
                         "px-4 py-3 text-sm font-medium rounded-lg transition-colors block",
                         isActive(link.href)
                           ? "text-yellow-400 bg-yellow-400/10"
-                          : "text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50"
+                          : "text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50",
                       )}
                     >
                       {link.label}

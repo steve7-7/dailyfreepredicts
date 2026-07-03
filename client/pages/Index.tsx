@@ -184,24 +184,30 @@ export default function Index() {
 
           switch (code) {
             case "API_KEY_MISSING":
-              errorMessage = "API key not configured on server. Please contact support.";
+              errorMessage =
+                "API key not configured on server. Please contact support.";
               isRetryable = false;
               break;
             case "API_AUTH_FAILED":
-              errorMessage = "API authentication failed. Please contact support.";
+              errorMessage =
+                "API authentication failed. Please contact support.";
               isRetryable = false;
               break;
             case "RATE_LIMITED":
-              const retryAfter = errorData.retryAfter ? ` in ${errorData.retryAfter} seconds` : "";
+              const retryAfter = errorData.retryAfter
+                ? ` in ${errorData.retryAfter} seconds`
+                : "";
               errorMessage = `Too many requests. Please try again${retryAfter}.`;
               isRetryable = true;
               break;
             case "INVALID_RESPONSE":
-              errorMessage = "Server received invalid data from API. Please try again later.";
+              errorMessage =
+                "Server received invalid data from API. Please try again later.";
               isRetryable = false;
               break;
             case "NETWORK_ERROR":
-              errorMessage = "Network error while fetching predictions. Please check your connection.";
+              errorMessage =
+                "Network error while fetching predictions. Please check your connection.";
               isRetryable = true;
               break;
             case "FETCH_FAILED":
@@ -209,7 +215,8 @@ export default function Index() {
               isRetryable = true;
               break;
             default:
-              errorMessage = errorData.error || errorData.details || errorMessage;
+              errorMessage =
+                errorData.error || errorData.details || errorMessage;
           }
         } catch (_) {
           // Response wasn't JSON, use default error message
@@ -224,9 +231,10 @@ export default function Index() {
       const predictionsData = result.data || [];
       setPredictions(predictionsData);
     } catch (err) {
-      const errorMessage = err instanceof Error
-        ? err.message
-        : "An error occurred while fetching predictions";
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "An error occurred while fetching predictions";
       setError(errorMessage);
       console.error("Error fetching predictions:", err);
     } finally {
@@ -583,12 +591,18 @@ export default function Index() {
               <h4 className="font-semibold text-white mb-4">Product</h4>
               <ul className="space-y-2 text-sm text-slate-400">
                 <li>
-                  <a href="#" className="hover:text-yellow-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-yellow-400 transition-colors"
+                  >
                     Predictions
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-yellow-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-yellow-400 transition-colors"
+                  >
                     Analytics
                   </a>
                 </li>
@@ -598,12 +612,18 @@ export default function Index() {
               <h4 className="font-semibold text-white mb-4">Company</h4>
               <ul className="space-y-2 text-sm text-slate-400">
                 <li>
-                  <a href="#" className="hover:text-yellow-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-yellow-400 transition-colors"
+                  >
                     About
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-yellow-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-yellow-400 transition-colors"
+                  >
                     Contact
                   </a>
                 </li>
@@ -613,12 +633,18 @@ export default function Index() {
               <h4 className="font-semibold text-white mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-slate-400">
                 <li>
-                  <a href="#" className="hover:text-yellow-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-yellow-400 transition-colors"
+                  >
                     Privacy
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-yellow-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-yellow-400 transition-colors"
+                  >
                     Terms
                   </a>
                 </li>
@@ -628,12 +654,18 @@ export default function Index() {
               <h4 className="font-semibold text-white mb-4">Follow</h4>
               <ul className="space-y-2 text-sm text-slate-400">
                 <li>
-                  <a href="#" className="hover:text-yellow-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-yellow-400 transition-colors"
+                  >
                     Twitter
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-yellow-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-yellow-400 transition-colors"
+                  >
                     Discord
                   </a>
                 </li>

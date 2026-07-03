@@ -26,7 +26,9 @@ function getCachedData(): any | null {
 
       // If cache is fresh (less than 4.8 hours old), return it
       if (age < CACHE_DURATION_MS) {
-        console.log(`Using cached data (${Math.round(age / 1000 / 60)} minutes old)`);
+        console.log(
+          `Using cached data (${Math.round(age / 1000 / 60)} minutes old)`,
+        );
         return cache.data;
       }
     }
@@ -75,7 +77,7 @@ async function fetchFromBetminer(): Promise<any> {
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(
-      `Betminer API error ${response.status}: ${response.statusText}`
+      `Betminer API error ${response.status}: ${response.statusText}`,
     );
   }
 

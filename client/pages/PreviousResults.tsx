@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, AlertCircle, Loader, Trophy, CheckCircle2, XCircle, Clock } from "lucide-react";
+import {
+  TrendingUp,
+  AlertCircle,
+  Loader,
+  Trophy,
+  CheckCircle2,
+  XCircle,
+  Clock,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface Result {
@@ -81,7 +89,10 @@ export default function PreviousResults() {
       console.log("Processed results data:", resultData);
       setResults(resultData || []);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An error occurred while fetching results";
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "An error occurred while fetching results";
       setError(errorMessage);
       console.error("Error fetching history:", err);
       setResults([]);
@@ -94,7 +105,8 @@ export default function PreviousResults() {
     if (!result.status) return null;
     const statusStr = String(result.status).toLowerCase();
 
-    if (statusStr.includes("pending") || statusStr.includes("active")) return null;
+    if (statusStr.includes("pending") || statusStr.includes("active"))
+      return null;
     if (statusStr.includes("finished")) {
       if (!result.prediction || !result.result) return null;
       return result.prediction === result.result;
@@ -119,9 +131,10 @@ export default function PreviousResults() {
     pending: results.filter((r) => isResultCorrect(r) === null).length,
   };
 
-  const winRate = stats.won + stats.lost > 0
-    ? ((stats.won / (stats.won + stats.lost)) * 100).toFixed(1)
-    : 0;
+  const winRate =
+    stats.won + stats.lost > 0
+      ? ((stats.won / (stats.won + stats.lost)) * 100).toFixed(1)
+      : 0;
 
   function formatDate(dateString?: string): string {
     if (!dateString) return "N/A";
@@ -150,7 +163,10 @@ export default function PreviousResults() {
       <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between h-14">
-            <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <Link
+              to="/"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            >
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-400 to-lime-500 flex items-center justify-center flex-shrink-0">
                 <TrendingUp className="w-6 h-6 text-slate-900" />
               </div>
@@ -163,16 +179,28 @@ export default function PreviousResults() {
             </Link>
 
             <nav className="flex items-center gap-1 sm:gap-6 flex-1 justify-center">
-              <Link to="/" className="px-3 py-2 text-sm font-semibold text-yellow-400 bg-yellow-400/10 rounded-lg">
+              <Link
+                to="/"
+                className="px-3 py-2 text-sm font-semibold text-yellow-400 bg-yellow-400/10 rounded-lg"
+              >
                 Results
               </Link>
-              <Link to="/predictions" className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors">
+              <Link
+                to="/predictions"
+                className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors"
+              >
                 Today
               </Link>
-              <Link to="/stats" className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors">
+              <Link
+                to="/stats"
+                className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors"
+              >
                 Stats
               </Link>
-              <Link to="/" className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors">
+              <Link
+                to="/"
+                className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-colors"
+              >
                 History
               </Link>
             </nav>
@@ -198,8 +226,8 @@ export default function PreviousResults() {
             Prediction Results
           </h2>
           <p className="text-lg text-slate-300 max-w-2xl">
-            View all past predictions and track performance. See which tips won and
-            analyze patterns to improve future predictions.
+            View all past predictions and track performance. See which tips won
+            and analyze patterns to improve future predictions.
           </p>
         </div>
 
@@ -219,7 +247,9 @@ export default function PreviousResults() {
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-semibold text-red-300">Error Loading Results</h3>
+                <h3 className="font-semibold text-red-300">
+                  Error Loading Results
+                </h3>
                 <p className="text-sm text-red-400 mt-1">{error}</p>
                 <button
                   onClick={fetchHistory}
@@ -236,22 +266,30 @@ export default function PreviousResults() {
         {!loading && stats.total > 0 && (
           <div className="grid md:grid-cols-4 gap-4 mb-8">
             <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-              <div className="text-sm font-medium text-slate-400 mb-2">Total Results</div>
+              <div className="text-sm font-medium text-slate-400 mb-2">
+                Total Results
+              </div>
               <div className="text-3xl font-bold text-white">{stats.total}</div>
               <p className="text-xs text-slate-500 mt-2">All predictions</p>
             </div>
             <div className="bg-green-900/30 border border-green-700/50 rounded-xl p-6">
               <div className="text-sm font-medium text-green-300 mb-2">Won</div>
-              <div className="text-3xl font-bold text-green-200">{stats.won}</div>
+              <div className="text-3xl font-bold text-green-200">
+                {stats.won}
+              </div>
               <p className="text-xs text-green-400 mt-2">Successful tips</p>
             </div>
             <div className="bg-red-900/30 border border-red-700/50 rounded-xl p-6">
               <div className="text-sm font-medium text-red-300 mb-2">Lost</div>
-              <div className="text-3xl font-bold text-red-200">{stats.lost}</div>
+              <div className="text-3xl font-bold text-red-200">
+                {stats.lost}
+              </div>
               <p className="text-xs text-red-400 mt-2">Failed tips</p>
             </div>
             <div className="bg-blue-900/30 border border-blue-700/50 rounded-xl p-6">
-              <div className="text-sm font-medium text-blue-300 mb-2">Win Rate</div>
+              <div className="text-sm font-medium text-blue-300 mb-2">
+                Win Rate
+              </div>
               <div className="text-3xl font-bold text-blue-200">{winRate}%</div>
               <p className="text-xs text-blue-400 mt-2">Success rate</p>
             </div>
@@ -275,7 +313,10 @@ export default function PreviousResults() {
                     : "bg-slate-800 border border-slate-700 text-slate-300 hover:border-yellow-400/50"
                 }`}
               >
-                {filter.label} <span className="ml-2 text-sm opacity-70">({filter.count})</span>
+                {filter.label}{" "}
+                <span className="ml-2 text-sm opacity-70">
+                  ({filter.count})
+                </span>
               </button>
             ))}
           </div>
@@ -290,16 +331,14 @@ export default function PreviousResults() {
                 <div
                   key={result.id || idx}
                   onClick={() =>
-                    setSelectedResult(
-                      selectedResult === idx ? null : idx
-                    )
+                    setSelectedResult(selectedResult === idx ? null : idx)
                   }
                   className={`p-6 rounded-xl border cursor-pointer transition-all ${
                     status === "won"
                       ? "bg-green-900/30 border-green-700/50 hover:border-green-600/50"
                       : status === "lost"
-                      ? "bg-red-900/30 border-red-700/50 hover:border-red-600/50"
-                      : "bg-yellow-900/20 border-yellow-700/50 hover:border-yellow-600/50"
+                        ? "bg-red-900/30 border-red-700/50 hover:border-red-600/50"
+                        : "bg-yellow-900/20 border-yellow-700/50 hover:border-yellow-600/50"
                   }`}
                 >
                   <div className="flex items-start justify-between mb-4">
@@ -369,10 +408,24 @@ export default function PreviousResults() {
                         </h4>
                         <div className="space-y-2 text-sm">
                           {Object.entries(result).map(([key, value]) => {
-                            if (["id", "tip", "odds", "result", "date", "league", "match", "status"].includes(key)) return null;
+                            if (
+                              [
+                                "id",
+                                "tip",
+                                "odds",
+                                "result",
+                                "date",
+                                "league",
+                                "match",
+                                "status",
+                              ].includes(key)
+                            )
+                              return null;
                             return (
                               <div key={key}>
-                                <span className="text-slate-400 capitalize">{key}: </span>
+                                <span className="text-slate-400 capitalize">
+                                  {key}:{" "}
+                                </span>
                                 <span className="font-medium text-slate-300">
                                   {String(value)}
                                 </span>
@@ -423,17 +476,26 @@ export default function PreviousResults() {
               <h4 className="font-semibold text-white mb-4">Product</h4>
               <ul className="space-y-2 text-sm text-slate-400">
                 <li>
-                  <Link to="/" className="hover:text-yellow-400 transition-colors">
+                  <Link
+                    to="/"
+                    className="hover:text-yellow-400 transition-colors"
+                  >
                     Results
                   </Link>
                 </li>
                 <li>
-                  <Link to="/predictions" className="hover:text-yellow-400 transition-colors">
+                  <Link
+                    to="/predictions"
+                    className="hover:text-yellow-400 transition-colors"
+                  >
                     Today's Picks
                   </Link>
                 </li>
                 <li>
-                  <Link to="/stats" className="hover:text-yellow-400 transition-colors">
+                  <Link
+                    to="/stats"
+                    className="hover:text-yellow-400 transition-colors"
+                  >
                     Stats
                   </Link>
                 </li>
@@ -443,12 +505,18 @@ export default function PreviousResults() {
               <h4 className="font-semibold text-white mb-4">Company</h4>
               <ul className="space-y-2 text-sm text-slate-400">
                 <li>
-                  <a href="#" className="hover:text-yellow-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-yellow-400 transition-colors"
+                  >
                     About
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-yellow-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-yellow-400 transition-colors"
+                  >
                     Contact
                   </a>
                 </li>
@@ -458,12 +526,18 @@ export default function PreviousResults() {
               <h4 className="font-semibold text-white mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-slate-400">
                 <li>
-                  <a href="#" className="hover:text-yellow-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-yellow-400 transition-colors"
+                  >
                     Privacy
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-yellow-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-yellow-400 transition-colors"
+                  >
                     Terms
                   </a>
                 </li>
@@ -473,12 +547,18 @@ export default function PreviousResults() {
               <h4 className="font-semibold text-white mb-4">Follow</h4>
               <ul className="space-y-2 text-sm text-slate-400">
                 <li>
-                  <a href="#" className="hover:text-yellow-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-yellow-400 transition-colors"
+                  >
                     Twitter
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-yellow-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-yellow-400 transition-colors"
+                  >
                     Discord
                   </a>
                 </li>
@@ -487,7 +567,8 @@ export default function PreviousResults() {
           </div>
           <div className="border-t border-slate-800 pt-8">
             <p className="text-center text-sm text-slate-400">
-              © 2026 ScorePredicted. All predictions are for entertainment purposes only.
+              © 2026 ScorePredicted. All predictions are for entertainment
+              purposes only.
             </p>
           </div>
         </div>
