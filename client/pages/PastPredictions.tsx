@@ -109,7 +109,10 @@ export default function PastPredictions() {
   const filtered = useMemo(() => {
     return matches.filter((m) => {
       // Ensure tip_successful is properly evaluated as boolean
-      const isWon = m.tip_successful === true || m.tip_successful === "true" || m.tip_successful === 1;
+      const isWon =
+        m.tip_successful === true ||
+        m.tip_successful === "true" ||
+        m.tip_successful === 1;
       if (filter === "won" && !isWon) return false;
       if (filter === "lost" && isWon) return false;
       if (leagueFilter !== "all" && m.league !== leagueFilter) return false;
@@ -136,18 +139,25 @@ export default function PastPredictions() {
     won + lost > 0 ? ((won / (won + lost)) * 100).toFixed(1) : "0";
   const totalProfit = matches.reduce((s, m) => s + (m.tip_profit ?? 0), 0);
   const totalStaked = matches.length;
-  const roi = totalStaked > 0 ? ((totalProfit / totalStaked) * 100).toFixed(1) : "0";
+  const roi =
+    totalStaked > 0 ? ((totalProfit / totalStaked) * 100).toFixed(1) : "0";
 
   // Calculate current streak
   const getCurrentStreak = () => {
     let streak = 0;
     let streakType = "none";
     for (const match of matches) {
-      const matchWon = match.tip_successful === true || match.tip_successful === "true" || match.tip_successful === 1;
+      const matchWon =
+        match.tip_successful === true ||
+        match.tip_successful === "true" ||
+        match.tip_successful === 1;
       if (streak === 0) {
         streakType = matchWon ? "won" : "lost";
         streak = 1;
-      } else if ((matchWon && streakType === "won") || (!matchWon && streakType === "lost")) {
+      } else if (
+        (matchWon && streakType === "won") ||
+        (!matchWon && streakType === "lost")
+      ) {
         streak++;
       } else {
         break;
@@ -158,15 +168,21 @@ export default function PastPredictions() {
   const currentStreak = getCurrentStreak();
 
   // Per-league stats
-  const leagueStats = matches.reduce((acc, m) => {
-    if (!acc[m.league]) {
-      acc[m.league] = { won: 0, total: 0 };
-    }
-    acc[m.league].total++;
-    const isWon = m.tip_successful === true || m.tip_successful === "true" || m.tip_successful === 1;
-    if (isWon) acc[m.league].won++;
-    return acc;
-  }, {} as Record<string, { won: number; total: number }>);
+  const leagueStats = matches.reduce(
+    (acc, m) => {
+      if (!acc[m.league]) {
+        acc[m.league] = { won: 0, total: 0 };
+      }
+      acc[m.league].total++;
+      const isWon =
+        m.tip_successful === true ||
+        m.tip_successful === "true" ||
+        m.tip_successful === 1;
+      if (isWon) acc[m.league].won++;
+      return acc;
+    },
+    {} as Record<string, { won: number; total: number }>,
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
@@ -288,33 +304,54 @@ export default function PastPredictions() {
 
             {/* Stats row - Bottom */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-              <div className={`${parseFloat(roi) >= 0 ? "bg-blue-900/30 border-blue-700/50" : "bg-red-900/30 border-red-700/50"} border rounded-xl p-5`}>
+              <div
+                className={`${parseFloat(roi) >= 0 ? "bg-blue-900/30 border-blue-700/50" : "bg-red-900/30 border-red-700/50"} border rounded-xl p-5`}
+              >
                 <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className={`w-4 h-4 ${parseFloat(roi) >= 0 ? "text-blue-400" : "text-red-400"}`} />
-                  <span className={`text-xs font-medium uppercase tracking-wide ${parseFloat(roi) >= 0 ? "text-blue-400" : "text-red-400"}`}>
+                  <TrendingUp
+                    className={`w-4 h-4 ${parseFloat(roi) >= 0 ? "text-blue-400" : "text-red-400"}`}
+                  />
+                  <span
+                    className={`text-xs font-medium uppercase tracking-wide ${parseFloat(roi) >= 0 ? "text-blue-400" : "text-red-400"}`}
+                  >
                     ROI
                   </span>
                 </div>
-                <div className={`text-3xl font-bold ${parseFloat(roi) >= 0 ? "text-blue-300" : "text-red-300"}`}>
+                <div
+                  className={`text-3xl font-bold ${parseFloat(roi) >= 0 ? "text-blue-300" : "text-red-300"}`}
+                >
                   {parseFloat(roi) >= 0 ? "+" : ""}
                   {roi}%
                 </div>
-                <p className={`text-xs mt-1 ${parseFloat(roi) >= 0 ? "text-blue-400/70" : "text-red-400/70"}`}>
+                <p
+                  className={`text-xs mt-1 ${parseFloat(roi) >= 0 ? "text-blue-400/70" : "text-red-400/70"}`}
+                >
                   Return on investment
                 </p>
               </div>
 
-              <div className={`${currentStreak.type === "won" ? "bg-green-900/30 border-green-700/50" : "bg-red-900/30 border-red-700/50"} border rounded-xl p-5`}>
+              <div
+                className={`${currentStreak.type === "won" ? "bg-green-900/30 border-green-700/50" : "bg-red-900/30 border-red-700/50"} border rounded-xl p-5`}
+              >
                 <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className={`w-4 h-4 ${currentStreak.type === "won" ? "text-green-400" : "text-red-400"}`} />
-                  <span className={`text-xs font-medium uppercase tracking-wide ${currentStreak.type === "won" ? "text-green-400" : "text-red-400"}`}>
+                  <TrendingUp
+                    className={`w-4 h-4 ${currentStreak.type === "won" ? "text-green-400" : "text-red-400"}`}
+                  />
+                  <span
+                    className={`text-xs font-medium uppercase tracking-wide ${currentStreak.type === "won" ? "text-green-400" : "text-red-400"}`}
+                  >
                     Streak
                   </span>
                 </div>
-                <div className={`text-3xl font-bold ${currentStreak.type === "won" ? "text-green-300" : "text-red-300"}`}>
-                  {currentStreak.streak} {currentStreak.type === "won" ? "W" : "L"}
+                <div
+                  className={`text-3xl font-bold ${currentStreak.type === "won" ? "text-green-300" : "text-red-300"}`}
+                >
+                  {currentStreak.streak}{" "}
+                  {currentStreak.type === "won" ? "W" : "L"}
                 </div>
-                <p className={`text-xs mt-1 ${currentStreak.type === "won" ? "text-green-400/70" : "text-red-400/70"}`}>
+                <p
+                  className={`text-xs mt-1 ${currentStreak.type === "won" ? "text-green-400/70" : "text-red-400/70"}`}
+                >
                   Current streak
                 </p>
               </div>
@@ -327,7 +364,10 @@ export default function PastPredictions() {
                   </span>
                 </div>
                 <div className="text-3xl font-bold text-purple-300">
-                  {(matches.reduce((s, m) => s + (m.tip_odd ?? 0), 0) / matches.length).toFixed(2)}
+                  {(
+                    matches.reduce((s, m) => s + (m.tip_odd ?? 0), 0) /
+                    matches.length
+                  ).toFixed(2)}
                 </div>
                 <p className="text-xs text-purple-400/70 mt-1">
                   Average odds offered
@@ -430,7 +470,8 @@ export default function PastPredictions() {
                             </div>
                             <div className="flex items-center gap-1 text-xs text-slate-500">
                               <Calendar className="w-3 h-3" />
-                              {formatDate(match.match_dat)} {formatTime(match.match_dat)}
+                              {formatDate(match.match_dat)}{" "}
+                              {formatTime(match.match_dat)}
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
@@ -474,7 +515,9 @@ export default function PastPredictions() {
                           </p>
                         </div>
                         <div className="bg-slate-700/50 rounded-lg p-3 border border-slate-600">
-                          <p className="text-xs text-slate-400 mb-1">Tip Odds</p>
+                          <p className="text-xs text-slate-400 mb-1">
+                            Tip Odds
+                          </p>
                           <p className="text-sm font-bold text-white">
                             {match.tip_odd?.toFixed(2)}
                           </p>
@@ -509,19 +552,25 @@ export default function PastPredictions() {
                         <div className="mt-4 pt-4 border-t border-slate-700 animate-in fade-in duration-200">
                           <div className="grid sm:grid-cols-3 gap-3 text-sm">
                             <div className="bg-slate-700/30 rounded-lg p-3 border border-slate-600">
-                              <p className="text-xs text-slate-400 mb-1">Sport</p>
+                              <p className="text-xs text-slate-400 mb-1">
+                                Sport
+                              </p>
                               <p className="font-semibold text-white">
                                 {match.sport}
                               </p>
                             </div>
                             <div className="bg-slate-700/30 rounded-lg p-3 border border-slate-600">
-                              <p className="text-xs text-slate-400 mb-1">Fair Odd</p>
+                              <p className="text-xs text-slate-400 mb-1">
+                                Fair Odd
+                              </p>
                               <p className="font-semibold text-white">
                                 {match.fair_odd?.toFixed(2)}
                               </p>
                             </div>
                             <div className="bg-slate-700/30 rounded-lg p-3 border border-slate-600">
-                              <p className="text-xs text-slate-400 mb-1">Value Edge</p>
+                              <p className="text-xs text-slate-400 mb-1">
+                                Value Edge
+                              </p>
                               <p
                                 className={`font-semibold ${match.tip_odd > match.fair_odd ? "text-green-400" : "text-slate-400"}`}
                               >

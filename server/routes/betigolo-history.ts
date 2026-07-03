@@ -14,17 +14,25 @@ const cache = new Map<string, CacheEntry>();
 const pendingRequests = new Map<string, PendingRequest>();
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 5): Promise<Response> {
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  maxRetries = 5,
+): Promise<Response> {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       const response = await fetch(url, options);
 
       if (response.status === 429) {
-        const retryAfter = response.headers.get('retry-after');
-        const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt + 1) * 1000;
-        console.warn(`Rate limited. Waiting ${waitTime}ms before retry ${attempt + 1}/${maxRetries}`);
+        const retryAfter = response.headers.get("retry-after");
+        const waitTime = retryAfter
+          ? parseInt(retryAfter) * 1000
+          : Math.pow(2, attempt + 1) * 1000;
+        console.warn(
+          `Rate limited. Waiting ${waitTime}ms before retry ${attempt + 1}/${maxRetries}`,
+        );
         if (attempt < maxRetries - 1) {
           await sleep(waitTime);
           continue;
@@ -42,7 +50,7 @@ async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 5)
       throw error;
     }
   }
-  throw new Error('Max retries exceeded');
+  throw new Error("Max retries exceeded");
 }
 
 export const handleBetigoloHistory: RequestHandler = async (req, res) => {
@@ -65,7 +73,7 @@ export const handleBetigoloHistory: RequestHandler = async (req, res) => {
     } catch (error) {
       return res.status(500).json({
         error: "Failed to fetch betigolo history",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       });
     }
   }
@@ -78,7 +86,8 @@ export const handleBetigoloHistory: RequestHandler = async (req, res) => {
     console.error("API key not configured");
     return res.status(500).json({
       error: "API key not configured",
-      details: "RAPIDAPI_KEY or PREDICTIONS_KEY environment variable is missing"
+      details:
+        "RAPIDAPI_KEY or PREDICTIONS_KEY environment variable is missing",
     });
   }
 
@@ -99,13 +108,20 @@ export const handleBetigoloHistory: RequestHandler = async (req, res) => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`API Error: ${response.status} ${response.statusText}`, errorText);
+        console.error(
+          `API Error: ${response.status} ${response.statusText}`,
+          errorText,
+        );
 
         if (response.status === 403) {
-          throw new Error("API authentication failed: Invalid or expired API key");
+          throw new Error(
+            "API authentication failed: Invalid or expired API key",
+          );
         }
 
-        throw new Error(`Failed to fetch betigolo history: ${response.statusText}`);
+        throw new Error(
+          `Failed to fetch betigolo history: ${response.statusText}`,
+        );
       }
 
       const data = await response.json();
@@ -115,7 +131,7 @@ export const handleBetigoloHistory: RequestHandler = async (req, res) => {
       cache.set(cacheKey, {
         data,
         timestamp: Date.now(),
-        ttl: CACHE_TTL
+        ttl: CACHE_TTL,
       });
 
       return data;
@@ -133,7 +149,7 @@ export const handleBetigoloHistory: RequestHandler = async (req, res) => {
     console.error("Error fetching betigolo history:", error);
     res.status(500).json({
       error: "Failed to fetch betigolo history",
-      details: error instanceof Error ? error.message : "Unknown error"
+      details: error instanceof Error ? error.message : "Unknown error",
     });
   }
 };

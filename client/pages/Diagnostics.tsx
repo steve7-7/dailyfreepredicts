@@ -105,7 +105,10 @@ export default function Diagnostics() {
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between h-14">
-            <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <Link
+              to="/"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            >
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo to-hot-pink flex items-center justify-center flex-shrink-0">
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
@@ -118,13 +121,22 @@ export default function Diagnostics() {
             </Link>
 
             <nav className="flex items-center gap-1 sm:gap-6 flex-1 justify-center">
-              <Link to="/" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors">
+              <Link
+                to="/"
+                className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
+              >
                 Today
               </Link>
-              <Link to="/stats" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors">
+              <Link
+                to="/stats"
+                className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
+              >
                 Stats
               </Link>
-              <Link to="/past-predictions" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors">
+              <Link
+                to="/past-predictions"
+                className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
+              >
                 History
               </Link>
             </nav>
@@ -138,8 +150,12 @@ export default function Diagnostics() {
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-slate-900 mb-2">System Diagnostics</h2>
-          <p className="text-slate-600">Check backend connectivity and API configuration</p>
+          <h2 className="text-3xl font-bold text-slate-900 mb-2">
+            System Diagnostics
+          </h2>
+          <p className="text-slate-600">
+            Check backend connectivity and API configuration
+          </p>
         </div>
 
         {loading ? (
@@ -194,14 +210,14 @@ export default function Diagnostics() {
               <h3 className="font-semibold text-blue-900 mb-2">Next Steps</h3>
               <ul className="text-sm text-blue-700 space-y-1">
                 <li>
-                  • If "API Key" shows error, ensure RAPIDAPI_KEY is set in your Netlify/Vercel environment variables
+                  • If "API Key" shows error, ensure RAPIDAPI_KEY is set in your
+                  Netlify/Vercel environment variables
                 </li>
                 <li>
-                  • If "Performance Stats API" shows error, check browser console for detailed error messages
+                  • If "Performance Stats API" shows error, check browser
+                  console for detailed error messages
                 </li>
-                <li>
-                  • Run diagnostics again after making changes
-                </li>
+                <li>• Run diagnostics again after making changes</li>
               </ul>
             </div>
 
